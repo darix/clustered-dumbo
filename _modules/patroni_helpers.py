@@ -5,7 +5,41 @@ Helpers for our patroni cluster
 
 
 import re
+import os.path
+from salt.modules.jinja import import_yaml
 
+cached_default_settings = nil
+cached_pillar_postgresql = nil
+cached_pillar_pgbackrest = nil
+cached_pillar_patroni = nil
+cached_pillar_etcd = nil
+
+def default_settings():
+    if cached_default_settings is nil:
+        current_dir = os.path.basename(__file__)
+        target_path = current_dir + '/../patroni/defaults.sls'
+        cached_default_settings = import_yaml(target_path)
+    return cached_default_settings
+
+def pillar_postgresql():
+    if cached_pillar_postgresql is nil:
+        cached_pillar_postgresql = __pillar__.get('postgresql', defaults=default_settings().get('postgresql', {}), merge=True)
+    return cached_pillar_postgresql
+
+def pillar_pgbackrest():
+    if cached_pillar_pgbackrest is nil:
+        cached_pillar_pgbackrest = __pillar__.get('pgbackrest', defaults=default_settings().get('pgbackrest', {}), merge=True)
+    return cached_pillar_pgbackrest
+
+def pillar_patroni():
+    if cached_pillar_patroni is nil:
+        cached_pillar_patroni = __pillar__.get('patroni',    defaults=default_settings().get('patroni', {}),    merge=True)
+    return cached_pillar_patroni
+
+def pillar_etcd():
+    if cached_pillar_etcd is nil:
+        cached_pillar_etcd = __pillar__.get('etcd',       defaults=default_settings().get('etcd', {}),       merge=True)
+    return cached_pillar_etcd
 
 def pg_hba_rules(config_data, auth_scope):
     rules = []
@@ -23,8 +57,9 @@ def pg_hba_rules(config_data, auth_scope):
 
 
 def pg_hba_fetch_value_or_default(config_data, auth_scope, option_name, default=None):
-    if auth_scope in __pillar__['postgresql'] and option_name in __pillar__['postgresql'][auth_scope]:
-        value = __pillar__['postgresql'][auth_scope][option_name]
+    pillar_postgresql = pillar_postgresql()
+    if auth_scope in pillar_postgresql and option_name in pillar_postgresql[auth_scope]:
+        value = pillar_postgresql[auth_scope][option_name]
     else:
         value = default
     if option_name in config_data:
@@ -56,7 +91,7 @@ def pg_hba_single_rule(config_data, auth_scope):
 
 
 def rules():
-    pg_pillar = __pillar__['postgresql']
+    pg_pillar = pillar_postgresql()
 
     rules = []
 
@@ -64,7 +99,7 @@ def rules():
         for identifier, config_data in pg_pillar['pg_hba'].items():
             rules += pg_hba_rules(config_data, 'client')
 
-    patroni_cluster_role = __pillar__['patroni']['cluster_role']
+    patroni_cluster_role = pillar_patroni()['cluster_role']
     rules += pg_hba_rules({'mine_target': patroni_cluster_role,  'mine_functions': 'mgmt_ip_addrs'}, 'replication')
 
     if 'pg_hba_defaults' in pg_pillar:
@@ -73,7 +108,7 @@ def rules():
 
     return rules
 
-
+# TODO: this needs some meta programming
 def cacert(subpillar):
     cacert = ''
     if 'cacert' in __pillar__[subpillar]:
@@ -85,8 +120,8 @@ def cacert(subpillar):
 
 
 def pg_setting_or_default(settings, key, default_pillar_key=None, default_value=None):
-    if key in __pillar__['postgresql']['parameters']:
-        value = __pillar__['postgresql']['parameters'][key]
+    if key in pillar_postgresql()['parameters']:
+        value = pillar_postgresql()['parameters'][key]
     else:
         if default_pillar_key in __pillar__:
             value = __pillar__[default_pillar_key]
@@ -98,10 +133,10 @@ def pg_setting_or_default(settings, key, default_pillar_key=None, default_value=
 
 def settings():
     result = {}
-    if 'parameters' in __pillar__['postgresql']:
-        for parameter, value in __pillar__['postgresql']['parameters'].items():
+    if 'parameters' in pillar_postgresql():
+        for parameter, value in pillar_postgresql()['parameters'].items():
             result[parameter] = value
-    pgbackrest_stanza = __pillar__['pgbackrest']['stanza']
+    pgbackrest_stanza = pillar_pgbackrest()['stanza']
     pg_setting_or_default(result, 'archive_command',          default_value='/usr/bin/pgbackrest --stanza=' + pgbackrest_stanza + ' archive-push "%p"' )
     pg_setting_or_default(result, 'restore_command',          default_value='/usr/bin/pgbackrest --stanza=' + pgbackrest_stanza + ' archive-get %f "%p"' )
     pg_setting_or_default(result, 'ssl_min_protocol_version', default_pillar_key='ssl_minimum_version' )
