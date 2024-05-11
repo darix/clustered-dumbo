@@ -21,6 +21,8 @@ def default_settings():
         cached_default_settings = import_yaml(target_path)
     return cached_default_settings
 
+# TODO: in an ideal world we wouldnt want a way to check that the new pillar is not just the defaults
+#       then it would also make sense to refactor this out.
 def pillar_postgresql():
     if cached_pillar_postgresql is nil:
         cached_pillar_postgresql = __pillar__.get('postgresql', defaults=default_settings().get('postgresql', {}), merge=True)
