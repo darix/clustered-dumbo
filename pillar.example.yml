@@ -8,9 +8,6 @@
 # pgbackrest
 {%- set pgbackrest_stanza = patroni_scope ~ '-' ~ patroni_namespace %}
 
-include:
-  - includes.postgresql-common
-
 etcd:
   cluster_name: {{ pgbackrest_stanza }}
 
