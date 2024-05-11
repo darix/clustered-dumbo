@@ -1,4 +1,4 @@
-{%- set profile_name = 'postgresql' %}
+{%- import_yaml './defaults.sls' as default_settings %}
 
 {%- set own_cluster_ip_address  = salt['mine.get'](grains.id,                    'mgmt_ip_addrs')[grains.id][0]        %}
 {%- set cluster_ip_addresses    = salt['mine.get'](pillar.patroni.cluster_role,  'mgmt_ip_addrs', tgt_type='compound') %}
@@ -54,7 +54,7 @@ sysconfig_etcd:
       - patroni_cluster_packages
     - names:
       - /etc/sysconfig/etcd:
-        - source: salt://profile/{{ profile_name }}/files/etc/sysconfig/etcd.j2
+        - source: salt://{{ slspath }}/files/etc/sysconfig/etcd.j2
     - context:
       own_ip:              {{ own_cluster_ip_address }}
       etcd_protocol:       {{ etcd_protocol }}
@@ -89,7 +89,7 @@ patroni_config:
       - pgbackrest_packages
     - names:
       - /etc/patroni.yml:
-        - source: salt://profile/{{ profile_name }}/files/etc/patroni.yml.j2
+        - source: salt://{{ slspath }}/files/etc/patroni.yml.j2
     - context:
       postgresql_port: {{ postgresql_port }}
       own_cluster_ip_address: {{ own_cluster_ip_address }}
@@ -137,7 +137,7 @@ pgbackrest_config:
       - patroni_cluster_packages
     - names:
       - /etc/pgbackrest.conf:
-        - source: salt://profile/{{ profile_name }}/files/etc/pgbackrest.conf.j2
+        - source: salt://{{ slspath }}/files/etc/pgbackrest.conf.j2
     - context:
       postgresql_port: {{ postgresql_port }}
       minio_url: {{ minio_url }}
@@ -151,7 +151,7 @@ pgbackrest_init_helper:
       - pgbackrest_config
     - names:
       - /usr/bin/pgbackrest-init:
-        - source: salt://profile/{{ profile_name }}/files/usr/bin/pgbackrest-init
+        - source: salt://{{ slspath }}/files/usr/bin/pgbackrest-init
 
 {%- if 'initialize_cluster' in pillar.patroni and pillar.patroni.initialize_cluster and 'initialize_pgbackrest' in pillar.patroni and pillar.patroni.initialize_pgbackrest %}  # noqa: 204
   {%- for stanza_name, stanza_data in pillar.pgbackrest.config.stanzas.items() %}
