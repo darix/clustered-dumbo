@@ -8,14 +8,14 @@ import re
 import os.path
 from salt.modules.jinja import import_yaml
 
-cached_default_settings = nil
-cached_pillar_postgresql = nil
-cached_pillar_pgbackrest = nil
-cached_pillar_patroni = nil
-cached_pillar_etcd = nil
+cached_default_settings = None
+cached_pillar_postgresql = None
+cached_pillar_pgbackrest = None
+cached_pillar_patroni = None
+cached_pillar_etcd = None
 
 def default_settings():
-    if cached_default_settings is nil:
+    if cached_default_settings is None:
         current_dir = os.path.basename(__file__)
         target_path = current_dir + '/../patroni/defaults.sls'
         cached_default_settings = import_yaml(target_path)
@@ -24,22 +24,22 @@ def default_settings():
 # TODO: in an ideal world we wouldnt want a way to check that the new pillar is not just the defaults
 #       then it would also make sense to refactor this out.
 def pillar_postgresql():
-    if cached_pillar_postgresql is nil:
+    if cached_pillar_postgresql is None:
         cached_pillar_postgresql = __pillar__.get('postgresql', defaults=default_settings().get('postgresql', {}), merge=True)
     return cached_pillar_postgresql
 
 def pillar_pgbackrest():
-    if cached_pillar_pgbackrest is nil:
+    if cached_pillar_pgbackrest is None:
         cached_pillar_pgbackrest = __pillar__.get('pgbackrest', defaults=default_settings().get('pgbackrest', {}), merge=True)
     return cached_pillar_pgbackrest
 
 def pillar_patroni():
-    if cached_pillar_patroni is nil:
+    if cached_pillar_patroni is None:
         cached_pillar_patroni = __pillar__.get('patroni',    defaults=default_settings().get('patroni', {}),    merge=True)
     return cached_pillar_patroni
 
 def pillar_etcd():
-    if cached_pillar_etcd is nil:
+    if cached_pillar_etcd is None:
         cached_pillar_etcd = __pillar__.get('etcd',       defaults=default_settings().get('etcd', {}),       merge=True)
     return cached_pillar_etcd
 
