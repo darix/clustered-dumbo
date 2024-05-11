@@ -108,11 +108,21 @@ def rules():
 
     return rules
 
-# TODO: this needs some meta programming
 def cacert(subpillar):
     cacert = ''
-    if 'cacert' in __pillar__[subpillar]:
-        cacert = __pillar__[subpillar].cacert
+    pillar_for_cacert = {}
+    match subpillar:
+        case 'patroni':
+            pillar_for_cacert = pillar_patroni()
+        case 'etcd':
+            pillar_for_cacert = pillar_etcd()
+        case 'postgresql':
+            pillar_for_cacert = pillar_postgresql()
+        case 'pgbackrest':
+            pillar_for_cacert = pillar_pgbackrest()
+
+    if 'cacert' in pillar_for_cacert:
+        cacert = pillar_for_cacert.cacert
     else:
         if 'local_ca_cert' in __pillar__:
             cacert = __pillar__['local_ca_cert']
