@@ -1,4 +1,4 @@
-{%- set etcd_cluster_urls        =  salt['patroni_helpers.mine_etcd_cluster_url'](pillar.patroni.cluster_role, 'mgmt_ip_addrs') %}
+{%- set etcd_cluster_urls        =  salt['patroni_helpers.mine_etcd_cluster_url'](patroni_cluster_role, 'mgmt_ip_addrs') %}
 
 {%- set etcd_own_host_client_url = etcd_protocol ~ '://' ~ grains.id ~ ':' ~ etcd_client_port %}
 {%- set etcd_own_ip_client_url   = etcd_protocol ~ '://' ~ own_ip ~ ':' ~ etcd_client_port %}
@@ -19,11 +19,11 @@ ETCD_LISTEN_CLIENT_URLS="{{ etcd_own_ip_client_url }}"
 ETCD_ADVERTISE_CLIENT_URLS="{{ etcd_own_host_client_url }}"
 ETCD_INITIAL_CLUSTER="{{ etcd_cluster_urls }}"
 # TLS config
-ETCD_CERT_FILE="{{ pillar.etcd.cert }}"
-ETCD_KEY_FILE="{{ pillar.etcd.cert }}"
+ETCD_CERT_FILE="{{ pillar_etcd.cert }}"
+ETCD_KEY_FILE="{{ pillar_etcd.cert }}"
 ETCD_CLIENT_CERT_AUTH="true"
 ETCD_TRUSTED_CA_FILE="{{ cacert }}"
-ETCD_PEER_CERT_FILE="{{ pillar.etcd.cert }}"
-ETCD_PEER_KEY_FILE="{{ pillar.etcd.cert }}"
+ETCD_PEER_CERT_FILE="{{ pillar_etcd.cert }}"
+ETCD_PEER_KEY_FILE="{{ pillar_etcd.cert }}"
 ETCD_PEER_CLIENT_CERT_AUTH="true"
 ETCD_PEER_TRUSTED_CA_FILE="{{ cacert }}"

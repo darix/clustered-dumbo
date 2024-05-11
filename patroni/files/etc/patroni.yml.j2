@@ -1,12 +1,12 @@
 {%-   set bootstrap_method = 'pgbackrest' %}
-{%- if pillar.patroni.initialize_cluster %}
+{%- if pillar_patroni.initialize_cluster %}
 {%-   set bootstrap_method = 'initdb' %}
 {%- endif %}
 # better names for those 2 settings are
 # teamname
-scope: {{ pillar.patroni.config.scope }}
+scope: {{ pillar_patroni.config.scope }}
 # datacenter
-namespace: /{{ pillar.patroni.config.namespace }}/
+namespace: /{{ pillar_patroni.config.namespace }}/
 # hostname
 name: {{ grains.id }}
 
@@ -15,18 +15,18 @@ name: {{ grains.id }}
 restapi:
   listen:          {{ own_cluster_ip_address }}:8008
   connect_address: {{ own_cluster_ip_address }}:8008
-  keyfile:         {{ pillar.patroni.config.cert }}
-  certfile:        {{ pillar.patroni.config.cert }}
+  keyfile:         {{ pillar_patroni.config.cert }}
+  certfile:        {{ pillar_patroni.config.cert }}
   cafile:          {{ cacert }}
   verify_client:   required
   authentication:
-    username: {{ pillar.patroni.config.restapi.username }}
-    password: {{ pillar.patroni.config.restapi.password }}
+    username: {{ pillar_patroni.config.restapi.username }}
+    password: {{ pillar_patroni.config.restapi.password }}
 
-{%- if pillar.patroni.config.dcs == 'etcd' %}
+{%- if pillar_patroni.config.dcs == 'etcd' %}
 etcd3:
-  key:    {{ pillar.patroni.config.cert }}
-  cert:   {{ pillar.patroni.config.cert }}
+  key:    {{ pillar_patroni.config.cert }}
+  cert:   {{ pillar_patroni.config.cert }}
   cacert: {{ cacert }}
   protocol: https
   hosts:
@@ -49,11 +49,11 @@ bootstrap:
     synchronous_mode: True
     # # if we remove this section with patronictl edit-config it will start a leader selection
     # # https://patroni.readthedocs.io/en/latest/replica_bootstrap.html
-    {% if 'is_standby' in pillar.patroni.config and pillar.patroni.config.is_standby %}
+    {% if 'is_standby' in pillar_patroni.config and pillar_patroni.config.is_standby %}
     standby_cluster:
-      host: {{ pillar.patroni.config.standby_primary }}
+      host: {{ pillar_patroni.config.standby_primary }}
       port: 5432
-      restore_command: '/usr/bin/pgbackrest --stanza={{ pillar.pgbackrest.stanza }} archive-get %f "%p"'
+      restore_command: '/usr/bin/pgbackrest --stanza={{ pgbackrest_stanza }} archive-get %f "%p"'
       # this needs to be manually created
       primary_slot_name: patroni_standby
       # in theory we can use the same fallthrough as in the postgresql section below
@@ -78,7 +78,7 @@ bootstrap:
     keep_existing_recovery_conf: False
     recovery_conf:
       recovery_target_timeline: latest
-      restore_command: '/usr/bin/pgbackrest --stanza={{ pillar.pgbackrest.stanza }} archive-get %f "%p"'
+      restore_command: '/usr/bin/pgbackrest --stanza={{ pgbackrest_stanza }} archive-get %f "%p"'
   basebackup:
     max-rate: '100M'
 
@@ -86,10 +86,10 @@ bootstrap:
   initdb:  # Note: It needs to be a list (some options need values, others are switches)
   - encoding: UTF8
   - data-checksums
-  - auth: {{ pillar.get ('postgresql:parameters:password_encryption', 'scram-sha-256') }}
+  - auth: {{ postgresql_password_encryption }}
   - auth-local: peer
-  - locale:     {{ pillar.get ('postgresql:locale', 'C.UTF-8') }}
-  - lc-collate: {{ pillar.get ('postgresql:locale', 'C.UTF-8') }}
+  - locale:     {{ postgresql_locale }}
+  - lc-collate: {{ postgresql_locale }}
 
   pg_hba:  # Add following lines to pg_hba.conf after running 'initdb'
     {%- for pg_hba_entry in pg_hba %}
@@ -109,11 +109,11 @@ postgresql:
     - pgbackrest
     - basebackup
   pgbackrest:
-    command: /usr/bin/pgbackrest --stanza={{ pillar.pgbackrest.stanza }} restore --delta --link-all
+    command: /usr/bin/pgbackrest --stanza={{ pgbackrest_stanza }} restore --delta --link-all
     keep_data: True
     no_params: True
   pgbackrest-bootstrap:
-    command: /usr/bin/pgbackrest --stanza={{ pillar.pgbackrest.stanza }} restore --link-all
+    command: /usr/bin/pgbackrest --stanza={{ pgbackrest_stanza }} restore --link-all
     keep_data: True
     no_params: True
   basebackup:
@@ -144,15 +144,15 @@ postgresql:
   - {{ pg_hba_entry }}
   {%- endfor %}
 
-{%- if 'watchdog' in pillar.patroni and 'use' in pillar.patroni.watchdog and pillar.patroni.watchdog.use %}
+{%- if 'watchdog' in pillar_patroni and 'use' in pillar_patroni.watchdog and pillar_patroni.watchdog.use %}
 watchdog:
-  mode:          {{ pillar.get('patroni:watchdog:mode',           'automatic')     }}
-  device:        {{ pillar.get('patroni:watchdog:device',         '/dev/watchdog') }}
-  safety_margin: {{ pillar.get('patroni:watchdog:safety_margin',  5)               }}
+  mode:          {{ pillar_patroni.get('watchdog:mode',           'automatic')     }}
+  device:        {{ pillar_patroni.get('watchdog:device',         '/dev/watchdog') }}
+  safety_margin: {{ pillar_patroni.get('watchdog:safety_margin',  5)               }}
 {%- endif %}
 
 tags:
-    nofailover:    {{ pillar.get('patroni:tags:nofailover',    false) }}
-    noloadbalance: {{ pillar.get('patroni:tags:noloadbalance', false) }}
-    clonefrom:     {{ pillar.get('patroni:tags:clonefrom',     false) }}
-    nosync:        {{ pillar.get('patroni:tags:nosync',        false) }}
+    nofailover:    {{ pillar_patroni.get('tags:nofailover',    false) }}
+    noloadbalance: {{ pillar_patroni.get('tags:noloadbalance', false) }}
+    clonefrom:     {{ pillar_patroni.get('tags:clonefrom',     false) }}
+    nosync:        {{ pillar_patroni.get('tags:nosync',        false) }}

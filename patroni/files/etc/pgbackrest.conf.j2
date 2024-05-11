@@ -1,10 +1,10 @@
 [global]
-{%- for key, value in pillar.pgbackrest.config.global.items() %}
+{%- for key, value in pillar_pgbackrest.config.global.items() %}
 {{ key }}={{ value }}
 {%- endfor %}
 repo1-s3-endpoint={{ minio_url }}
 
-{% for stanza_name, stanza_data in pillar.pgbackrest.config.stanzas.items() %}
+{% for stanza_name, stanza_data in pillar_pgbackrest.config.stanzas.items() %}
   {%- if 'enable' in stanza_data and stanza_data.enable %}
 [{{ stanza_name }}]
     {%- if 'use_standby_for_backup' in stanza_data and stanza_data.use_standby_for_backup %}

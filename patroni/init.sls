@@ -1,12 +1,15 @@
 {%- import_yaml './defaults.sls' as default_settings %}
 
-{%- set pillar_postgresql = pillar.get('postgresq', defaults=default_settings.get('postgresql', {}), merge=True) %}
+{%- set pillar_postgresql = pillar.get('postgresql', defaults=default_settings.get('postgresql', {}), merge=True) %}
+{%- set pillar_pgbackrest = pillar.get('pgbackrest', defaults=default_settings.get('pgbackrest', {}), merge=True) %}
+{%- set pillar_patroni    = pillar.get('patroni',    defaults=default_settings.get('patroni', {}),    merge=True) %}
+{%- set pillar_etcd       = pillar.get('etcd',       defaults=default_settings.get('etcd', {}),       merge=True) %}
 
 {%- set own_cluster_ip_address  = salt['mine.get'](grains.id,                    'mgmt_ip_addrs')[grains.id][0]        %}
-{%- set cluster_ip_addresses    = salt['mine.get'](pillar.patroni.cluster_role,  'mgmt_ip_addrs', tgt_type='compound') %}
-{%- set cluster_hostnames       = salt['mine.get'](pillar.patroni.cluster_role,  'host',          tgt_type='compound') %}
-{%- set cluster_fqdns           = salt['mine.get'](pillar.patroni.cluster_role,  'fqdn',          tgt_type='compound') %}
-{%- set minio_host              = salt['mine.get'](pillar.pgbackrest.minio_role, 'fqdn',          tgt_type='compound') %}
+{%- set cluster_ip_addresses    = salt['mine.get'](pillar_patroni.cluster_role,  'mgmt_ip_addrs', tgt_type='compound') %}
+{%- set cluster_hostnames       = salt['mine.get'](pillar_patroni.cluster_role,  'host',          tgt_type='compound') %}
+{%- set cluster_fqdns           = salt['mine.get'](pillar_patroni.cluster_role,  'fqdn',          tgt_type='compound') %}
+{%- set minio_host              = salt['mine.get'](pillar_pgbackrest.minio_role, 'fqdn',          tgt_type='compound') %}
 
 {%- set etcd_protocol       = 'https' %}
 {%- set etcd_client_port    = 2379 %}
@@ -37,7 +40,7 @@ postgresql_packages:
 patroni_cluster_packages:
   pkg.installed:
     - names:
-      - {{ pillar.patroni.config.dcs }}
+      - {{ pillar_patroni.config.dcs }}
       - patroni
 
 pgbackest_packages:
@@ -45,7 +48,7 @@ pgbackest_packages:
     - names:
       - pgbackrest
 
-{% if pillar.patroni.config.dcs== 'etcd' -%}
+{% if pillar_patroni.config.dcs== 'etcd' -%}
 sysconfig_etcd:
   file.managed:
     - makedirs: true
@@ -59,6 +62,8 @@ sysconfig_etcd:
       - /etc/sysconfig/etcd:
         - source: salt://{{ slspath }}/files/etc/sysconfig/etcd.j2
     - context:
+      patroni_cluster_role: {{ pillar_patroni.cluster_role }}
+      pillar_etcd:         {{ pillar_etcd }}
       own_ip:              {{ own_cluster_ip_address }}
       etcd_protocol:       {{ etcd_protocol }}
       etcd_client_port:    {{ etcd_client_port }}
@@ -80,6 +85,18 @@ postgresql_instances_dir:
     - user: postgres
     - group: postgres
     - mode: '0700'
+    - require:
+      - postgresql_packages
+
+{%- set sysconfig_setting = "POSTGRES_DATADIR" %}
+sysconfig_postgresql_datadir:
+  file.replace:
+    - require:
+      - postgresql_packages
+    - name: /etc/sysconfig/postgresql
+    - pattern: "^{{ sysconfig_setting }} *=.*"
+    - repl: {{ sysconfig_setting }}="{{ postgresql_data_directory }}"
+    - append_if_not_found: True
 
 # # start patroni here
 patroni_config:
@@ -89,12 +106,17 @@ patroni_config:
     - group: postgres
     - template: jinja
     - require:
-      - pgbackrest_packages
+      - pgbackrest_config
+      - sysconfig_postgresql_datadir
     - names:
       - /etc/patroni.yml:
         - source: salt://{{ slspath }}/files/etc/patroni.yml.j2
     - context:
       pillar_postgresql: {{ pillar_postgresql }}
+      pillar_patroni:    {{ pillar_patroni }}
+      pgbackrest_stanza: {{ pillar_pgbackrest.stanza }}
+      postgresql_locale: {{ pillar_postgresql.get('locale', 'C.UTF-8') }}
+      postgresql_password_encryption: {{ pillar_postgresql.get('parameters:password_encryption', 'scram-sha-256') }}
       postgresql_port: {{ postgresql_port }}
       own_cluster_ip_address: {{ own_cluster_ip_address }}
       etcd_hosts:
@@ -110,7 +132,7 @@ patroni_config:
         {%- for parameter, value in salt['patroni_helpers.settings']().items() %}
         {{ parameter }}: '{{ value }}'
         {%- endfor %}
-        {%- if 'use_synchronous_commit' in pillar.patroni and pillar.patroni.use_synchronous_commit %}
+        {%- if 'use_synchronous_commit' in pillar_patroni and pillar_patroni.use_synchronous_commit %}
         synchronous_commit: 'on'
         synchronous_standby_names: '{{ cluster_fqdns | join(', ') }}'
         {%- endif %}
@@ -125,8 +147,8 @@ patroni_service:
       - patroni_config
       - pgbackrest_config
       #
-      # {%- if 'initialize_cluster' in pillar.patroni and pillar.patroni.initialize_cluster and 'initialize_pgbackrest' in pillar.patroni and pillar.patroni.initialize_pgbackrest %}  # noqa: 204
-      #   {%- for stanza_name, stanza_data in pillar.pgbackrest.config.stanzas.items() %}
+      # {%- if 'initialize_cluster' in pillar_patroni and pillar_patroni.initialize_cluster and 'initialize_pgbackrest' in pillar_patroni and pillar_patroni.initialize_pgbackrest %}  # noqa: 204
+      #   {%- for stanza_name, stanza_data in pillar_pgbackrest.config.stanzas.items() %}
       # - pgbackrest_create_stanza_{{ stanza_name }}:
       #   {%- endfor %}
       # {%- endif %}
@@ -139,10 +161,13 @@ pgbackrest_config:
     - template: jinja
     - require:
       - patroni_cluster_packages
+      - pgbackrest_packages
+      - pgbackrest_config
     - names:
       - /etc/pgbackrest.conf:
         - source: salt://{{ slspath }}/files/etc/pgbackrest.conf.j2
     - context:
+      pillar_pgbackrest: {{ pillar_pgbackrest }}
       postgresql_data_directory: {{ postgresql_data_directory }}
       postgresql_port: {{ postgresql_port }}
       minio_url: {{ minio_url }}
@@ -158,8 +183,8 @@ pgbackrest_init_helper:
       - /usr/bin/pgbackrest-init:
         - source: salt://{{ slspath }}/files/usr/bin/pgbackrest-init
 
-{%- if 'initialize_cluster' in pillar.patroni and pillar.patroni.initialize_cluster and 'initialize_pgbackrest' in pillar.patroni and pillar.patroni.initialize_pgbackrest %}  # noqa: 204
-  {%- for stanza_name, stanza_data in pillar.pgbackrest.config.stanzas.items() %}
+{%- if 'initialize_cluster' in pillar_patroni and pillar_patroni.initialize_cluster and 'initialize_pgbackrest' in pillar_patroni and pillar_patroni.initialize_pgbackrest %}  # noqa: 204
+  {%- for stanza_name, stanza_data in pillar_pgbackrest.config.stanzas.items() %}
 pgbackrest_create_stanza_{{ stanza_name }}:
   cmd.run:
     - name: /usr/bin/pgbackrest-init {{ stanza_name }} {{ pillar_postgresql.data_directory }}
@@ -168,7 +193,6 @@ pgbackrest_create_stanza_{{ stanza_name }}:
     - creates: {{ pillar_postgresql.data_directory }}/pgbackrest-stanza-created
     - require:
       - patroni_service
-      - pgbackrest_config
       - pgbackrest_init_helper
   {%- endfor %}
 {%- endif %}
