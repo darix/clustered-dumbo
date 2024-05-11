@@ -1,0 +1,26 @@
+[global]
+{%- for key, value in pillar.pgbackrest.config.global.items() %}
+{{ key }}={{ value }}
+{%- endfor %}
+repo1-s3-endpoint={{ minio_url }}
+
+{% for stanza_name, stanza_data in pillar.pgbackrest.config.stanzas.items() %}
+  {%- if 'enable' in stanza_data and stanza_data.enable %}
+[{{ stanza_name }}]
+    {%- if 'use_standby_for_backup' in stanza_data and stanza_data.use_standby_for_backup %}
+# optionally we can do loop over all hosts here so we can defer the backup to a replica
+# we are not using this right now
+backup-standby=y
+      {%- for fqdn, host in cluster_hostnames %}
+        {%- set index = loop.counter+1 %}
+pg{{ index }}-host={{ host }}
+pg{{ index }}-path={{ pillar.postgresql.datadir }}
+pg{{ index }}-port={{ postgresql_port }}
+
+      {%- endfor %}
+    {%- else %}
+pg1-path={{ pillar.postgresql.datadir }}
+pg1-port={{ postgresql_port }}
+    {%- endif %}
+  {%- endif %}
+{%- endfor %}

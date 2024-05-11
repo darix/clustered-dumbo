@@ -1,0 +1,70 @@
+{%- set cluster_role            = 'I@role:postgresql' %}
+{%- set minio_role              = cluster_role       %}
+
+# patroni
+{%- set patroni_scope     = "groupname" %}
+{%- set patroni_namespace = "dmzname" %}
+
+# pgbackrest
+{%- set pgbackrest_stanza = patroni_scope ~ '-' ~ patroni_namespace %}
+
+include:
+  - includes.postgresql-common
+
+etcd:
+  cluster_name: {{ pgbackrest_stanza }}
+
+patroni:
+  cluster_role: {{ cluster_role }}
+  config:
+    scope: {{ patroni_scope }}
+    namespace: {{ patroni_namespace }}
+    restapi:
+      username: foo
+      password: password
+
+pgbackrest:
+  minio_role: {{ minio_role }}
+  stanza: {{ pgbackrest_stanza }}
+  config:
+    global:
+      # encrypt the backup
+      repo-cipher-pass:     superdupersecret
+      #
+      repo1-s3-region:      eu-de-{{ patroni_namespace }}
+      # auth data
+      repo1-s3-key:         pgbackrest
+      repo1-s3-key-secret:  alsosuperdupsecret
+    stanzas:
+      {{ pgbackrest_stanza }}:
+        enable: True
+        # optional
+        # use_standby_for_backup: False
+
+postgresql:
+  cluster_selector: {{ cluster_role }}
+  authentication:
+    # we do not list certificates here as we have a pattern for the certname
+    mirrorcache:
+      username: mirrorcache
+      password: supersecure
+  # parameters:
+  #   somesetting: value
+  pg_hba:
+    # TODO:
+    somedb_someuser_with_salt_mine:
+      databases: mirrorcache
+      user: mirrorcache
+      #
+      mine_target: 'I@role:mirrorcache'
+      mine_functions: 'ipaddrs'
+    somedb_someuser:
+      databases: somedb
+      user: someuser
+      address: 127.0.0.1/32
+    moredbs_someuser:
+      databases:
+        - db1
+        - db2
+      user: someuser
+      address: 127.0.0.1/32

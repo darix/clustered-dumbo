@@ -1,0 +1,158 @@
+{%-   set bootstrap_method = 'pgbackrest' %}
+{%- if pillar.patroni.initialize_cluster %}
+{%-   set bootstrap_method = 'initdb' %}
+{%- endif %}
+# better names for those 2 settings are
+# teamname
+scope: {{ pillar.patroni.config.scope }}
+# datacenter
+namespace: /{{ pillar.patroni.config.namespace }}/
+# hostname
+name: {{ grains.id }}
+
+{%- set cacert = salt['patroni_helpers.cacert']('patroni') %}
+
+restapi:
+  listen:          {{ own_cluster_ip_address }}:8008
+  connect_address: {{ own_cluster_ip_address }}:8008
+  keyfile:         {{ pillar.patroni.config.cert }}
+  certfile:        {{ pillar.patroni.config.cert }}
+  cafile:          {{ cacert }}
+  verify_client:   required
+  authentication:
+    username: {{ pillar.patroni.config.restapi.username }}
+    password: {{ pillar.patroni.config.restapi.password }}
+
+{%- if pillar.patroni.config.dcs == 'etcd' %}
+etcd3:
+  key:    {{ pillar.patroni.config.cert }}
+  cert:   {{ pillar.patroni.config.cert }}
+  cacert: {{ cacert }}
+  protocol: https
+  hosts:
+   {%- for address in etcd_hosts %}
+   - {{ address }}
+  {%- endfor %}
+{%- endif %}
+
+bootstrap:
+  # this section will be written into Etcd:/<namespace>/<scope>/config after initializing new cluster
+  # and all other cluster members will use it as a `global configuration`
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+
+    # find out what it does
+    # could mean how much data you would lose if you switchover
+    maximum_lag_on_failover: 1048576
+    synchronous_mode: True
+    # # if we remove this section with patronictl edit-config it will start a leader selection
+    # # https://patroni.readthedocs.io/en/latest/replica_bootstrap.html
+    {% if 'is_standby' in pillar.patroni.config and pillar.patroni.config.is_standby %}
+    standby_cluster:
+      host: {{ pillar.patroni.config.standby_primary }}
+      port: 5432
+      restore_command: '/usr/bin/pgbackrest --stanza={{ pillar.pgbackrest.stanza }} archive-get %f "%p"'
+      # this needs to be manually created
+      primary_slot_name: patroni_standby
+      # in theory we can use the same fallthrough as in the postgresql section below
+      create_replica_methods:
+      - pgbackrest
+      - basebackup
+    {% endif %}
+    postgresql:
+      # https://www.postgresql.org/docs/14/app-pgrewind.html
+      use_pg_rewind: true
+      use_slots: true
+      use_unix_socket: true
+      use_unix_socket_repl: true
+      parameters:
+        {%- for parameter, value in pg_settings.items() %}
+        {{ parameter }}: '{{ value }}'
+        {%- endfor %}
+
+  method: {{ bootstrap_method }}
+  pgbackrest:
+    command: /usr/bin/patroni-pgbackrest-bootstrap
+    keep_existing_recovery_conf: False
+    recovery_conf:
+      recovery_target_timeline: latest
+      restore_command: '/usr/bin/pgbackrest --stanza={{ pillar.pgbackrest.stanza }} archive-get %f "%p"'
+  basebackup:
+    max-rate: '100M'
+
+  # some desired options for 'initdb'
+  initdb:  # Note: It needs to be a list (some options need values, others are switches)
+  - encoding: UTF8
+  - data-checksums
+  - auth: {{ pillar.get ('postgresql:parameters:password_encryption', 'scram-sha-256') }}
+  - auth-local: peer
+  - locale:     {{ pillar.get ('postgresql:locale', 'C.UTF-8') }}
+  - lc-collate: {{ pillar.get ('postgresql:locale', 'C.UTF-8') }}
+
+  pg_hba:  # Add following lines to pg_hba.conf after running 'initdb'
+    {%- for pg_hba_entry in pg_hba %}
+    - {{ pg_hba_entry }}
+    {%- endfor %}
+
+  # Some additional users users which needs to be created after initializing new cluster
+  users:
+    admin:
+      password: admin
+      options:
+        - createrole
+        - createdb
+
+postgresql:
+  create_replica_methods:
+    - pgbackrest
+    - basebackup
+  pgbackrest:
+    command: /usr/bin/pgbackrest --stanza={{ pillar.pgbackrest.stanza }} restore --delta --link-all
+    keep_data: True
+    no_params: True
+  pgbackrest-bootstrap:
+    command: /usr/bin/pgbackrest --stanza={{ pillar.pgbackrest.stanza }} restore --link-all
+    keep_data: True
+    no_params: True
+  basebackup:
+    - verbose
+    - max-rate: '100M'
+  listen: {{ own_cluster_ip_address }}:{{ postgresql_port }}
+  use_unix_socket: true
+  use_unix_socket_repl: true
+  data_dir: {{ pillar.postgresql.datadir }}
+  authentication:
+    {%- for blockname, blockdata in pillar.postgresql.authentication.items() %}
+    {{ blockname }}:
+      username: {{ blockdata.username }}
+      password: {{ blockdata.password }}
+      sslkey:   /etc/ssl/services/pg.{{ blockdata.username }}.pem
+      sslcert:  /etc/ssl/services/pg.{{ blockdata.username }}.pem
+      sslrootcert: {{ cacert }}
+      sslmode: verify-full
+    {%- endfor %}
+  # this section is optional then all configuration comes from the DCS section above or needs to be done with patronictl edit-config
+  # important use case: this section can be used to have per host overrides
+  parameters:
+    {%- for parameter, value in pg_settings.items() %}
+    {{ parameter }}: '{{ value }}'
+    {%- endfor %}
+  pg_hba:  # Add following lines to pg_hba.conf after running 'initdb'
+  {%- for pg_hba_entry in pg_hba %}
+  - {{ pg_hba_entry }}
+  {%- endfor %}
+
+{%- if 'watchdog' in pillar.patroni and 'use' in pillar.patroni.watchdog and pillar.patroni.watchdog.use %}
+watchdog:
+  mode:          {{ pillar.get('patroni:watchdog:mode',           'automatic')     }}
+  device:        {{ pillar.get('patroni:watchdog:device',         '/dev/watchdog') }}
+  safety_margin: {{ pillar.get('patroni:watchdog:safety_margin',  5)               }}
+{%- endif %}
+
+tags:
+    nofailover:    {{ pillar.get('patroni:tags:nofailover',    false) }}
+    noloadbalance: {{ pillar.get('patroni:tags:noloadbalance', false) }}
+    clonefrom:     {{ pillar.get('patroni:tags:clonefrom',     false) }}
+    nosync:        {{ pillar.get('patroni:tags:nosync',        false) }}

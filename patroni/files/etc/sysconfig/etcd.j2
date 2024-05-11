@@ -1,0 +1,29 @@
+{%- set etcd_cluster_urls        =  salt['patroni_helpers.mine_etcd_cluster_url'](pillar.patroni.cluster_role, 'mgmt_ip_addrs') %}
+
+{%- set etcd_own_host_client_url = etcd_protocol ~ '://' ~ grains.id ~ ':' ~ etcd_client_port %}
+{%- set etcd_own_ip_client_url   = etcd_protocol ~ '://' ~ own_ip ~ ':' ~ etcd_client_port %}
+
+{%- set etcd_own_host_peer_url   = etcd_protocol ~ '://' ~ grains.id ~ ':' ~ etcd_peer_port   %}
+{%- set etcd_own_ip_peer_url     = etcd_protocol ~ '://' ~ own_ip ~ ':' ~ etcd_peer_port   %}
+
+{%- set cacert = salt['patroni_helpers.cacert']('etcd') %}
+
+# defaults to protocol https on port 2380
+ETCD_DATA_DIR="/var/lib/etcd/patroni.etcd"
+ETCD_INITIAL_CLUSTER_STATE="new"
+ETCD_INITIAL_CLUSTER_TOKEN="patroni"
+ETCD_NAME={{ grains.fqdn }}
+ETCD_LISTEN_PEER_URLS="{{ etcd_own_ip_peer_url }}"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="{{ etcd_own_host_peer_url }}"
+ETCD_LISTEN_CLIENT_URLS="{{ etcd_own_ip_client_url }}"
+ETCD_ADVERTISE_CLIENT_URLS="{{ etcd_own_host_client_url }}"
+ETCD_INITIAL_CLUSTER="{{ etcd_cluster_urls }}"
+# TLS config
+ETCD_CERT_FILE="{{ pillar.etcd.cert }}"
+ETCD_KEY_FILE="{{ pillar.etcd.cert }}"
+ETCD_CLIENT_CERT_AUTH="true"
+ETCD_TRUSTED_CA_FILE="{{ cacert }}"
+ETCD_PEER_CERT_FILE="{{ pillar.etcd.cert }}"
+ETCD_PEER_KEY_FILE="{{ pillar.etcd.cert }}"
+ETCD_PEER_CLIENT_CERT_AUTH="true"
+ETCD_PEER_TRUSTED_CA_FILE="{{ cacert }}"
