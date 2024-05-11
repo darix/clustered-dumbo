@@ -106,7 +106,3 @@ postgresql:
       user: postgres
       address:
       auth_method: ident
-
-sysconfig:
-  postgresql:
-    postgres_data_directory: {{ postgresql_data_directory }}
