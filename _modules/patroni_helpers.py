@@ -14,33 +14,38 @@ cached_pillar_pgbackrest = None
 cached_pillar_patroni = None
 cached_pillar_etcd = None
 
-def default_settings():
-    if cached_default_settings is None:
-        current_dir = os.path.basename(__file__)
-        target_path = current_dir + '/../patroni/defaults.sls'
-        cached_default_settings = import_yaml(target_path)
-    return cached_default_settings
+
+# def default_settings():
+#     global cached_default_settings
+#     if cached_default_settings is None:
+#         target_path = 'salt://patroni/defaults.sls'
+#         cached_default_settings = __salt__['jinja.import_yaml'](target_path)
+#     return cached_default_settings
 
 # TODO: in an ideal world we wouldnt want a way to check that the new pillar is not just the defaults
 #       then it would also make sense to refactor this out.
-def pillar_postgresql():
+def pillar_postgresql(default_settings={}):
+    global cached_pillar_postgresql
     if cached_pillar_postgresql is None:
-        cached_pillar_postgresql = __pillar__.get('postgresql', defaults=default_settings().get('postgresql', {}), merge=True)
+        cached_pillar_postgresql = __pillar__.get('postgresql', defaults=default_settings.get('postgresql', {}), merge=True)
     return cached_pillar_postgresql
 
-def pillar_pgbackrest():
+def pillar_pgbackrest(default_settings={}):
+    global cached_pillar_pgbackrest
     if cached_pillar_pgbackrest is None:
-        cached_pillar_pgbackrest = __pillar__.get('pgbackrest', defaults=default_settings().get('pgbackrest', {}), merge=True)
+        cached_pillar_pgbackrest = __pillar__.get('pgbackrest', defaults=default_settings.get('pgbackrest', {}), merge=True)
     return cached_pillar_pgbackrest
 
-def pillar_patroni():
+def pillar_patroni(default_settings={}):
+    global cached_pillar_patroni
     if cached_pillar_patroni is None:
-        cached_pillar_patroni = __pillar__.get('patroni',    defaults=default_settings().get('patroni', {}),    merge=True)
+        cached_pillar_patroni = __pillar__.get('patroni',    defaults=default_settings.get('patroni', {}),    merge=True)
     return cached_pillar_patroni
 
-def pillar_etcd():
+def pillar_etcd(default_settings={}):
+    global cached_pillar_etcd
     if cached_pillar_etcd is None:
-        cached_pillar_etcd = __pillar__.get('etcd',       defaults=default_settings().get('etcd', {}),       merge=True)
+        cached_pillar_etcd = __pillar__.get('etcd',       defaults=default_settings.get('etcd', {}),       merge=True)
     return cached_pillar_etcd
 
 def pg_hba_rules(config_data, auth_scope):
