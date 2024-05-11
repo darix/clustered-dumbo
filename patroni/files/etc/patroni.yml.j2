@@ -122,9 +122,9 @@ postgresql:
   listen: {{ own_cluster_ip_address }}:{{ postgresql_port }}
   use_unix_socket: true
   use_unix_socket_repl: true
-  data_dir: {{ pillar.postgresql.datadir }}
+  data_dir: {{ pillar_postgresql.data_directory }}
   authentication:
-    {%- for blockname, blockdata in pillar.postgresql.authentication.items() %}
+    {%- for blockname, blockdata in pillar_postgresql.authentication.items() %}
     {{ blockname }}:
       username: {{ blockdata.username }}
       password: {{ blockdata.password }}

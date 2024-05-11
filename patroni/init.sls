@@ -1,5 +1,7 @@
 {%- import_yaml './defaults.sls' as default_settings %}
 
+{%- set pillar_postgresql = pillar.get('postgresq', defaults=default_settings.get('postgresql', {}), merge=True) %}
+
 {%- set own_cluster_ip_address  = salt['mine.get'](grains.id,                    'mgmt_ip_addrs')[grains.id][0]        %}
 {%- set cluster_ip_addresses    = salt['mine.get'](pillar.patroni.cluster_role,  'mgmt_ip_addrs', tgt_type='compound') %}
 {%- set cluster_hostnames       = salt['mine.get'](pillar.patroni.cluster_role,  'host',          tgt_type='compound') %}
@@ -13,21 +15,22 @@
 
 {%- set minio_url = 'https://' ~ grains.id ~ ':9000/' %}
 {%- set postgresql_port = 5432 %}
-{%- if 'port' in pillar.postgresql.parameters %}
-{%- set postgresql_port = pillar.postgresql.parameters.port %}
+{%- if 'port' in pillar_postgresql.parameters %}
+{%- set postgresql_port = pillar_postgresql.parameters.port %}
 {%- endif %}
+{%- set postgresql_data_directory = pillar_postgresql.data_directory %}
 
 {%- set postgresql_cacert = salt['patroni_helpers.cacert']('patroni') %}
 
 postgresql_packages:
   pkg.installed:
     - names:
-      - postgresql{{ pillar.postgresql.version }}-server
-      - postgresql{{ pillar.postgresql.version }}-contrib
-      - postgresql{{ pillar.postgresql.version }}-llvmjit
-{%- if "modules" in pillar.postgresql and pillar.postgresql.modules|length > 0 %}
-  {%- for module in pillar.postgresql.modules %}
-      - postgresql{{ pillar.postgresql.version }}-{{ module }}
+      - postgresql{{ pillar_postgresql.version }}-server
+      - postgresql{{ pillar_postgresql.version }}-contrib
+      - postgresql{{ pillar_postgresql.version }}-llvmjit
+{%- if "modules" in pillar_postgresql and pillar_postgresql.modules|length > 0 %}
+  {%- for module in pillar_postgresql.modules %}
+      - postgresql{{ pillar_postgresql.version }}-{{ module }}
   {%- endif %}
 {%- endif %}
 
@@ -73,7 +76,7 @@ etcd_service:
 
 postgresql_instances_dir:
   file.directory:
-    - name: {{ pillar.postgresql.instancesdir }}
+    - name: {{ pillar_postgresql.instancesdir }}
     - user: postgres
     - group: postgres
     - mode: '0700'
@@ -91,6 +94,7 @@ patroni_config:
       - /etc/patroni.yml:
         - source: salt://{{ slspath }}/files/etc/patroni.yml.j2
     - context:
+      pillar_postgresql: {{ pillar_postgresql }}
       postgresql_port: {{ postgresql_port }}
       own_cluster_ip_address: {{ own_cluster_ip_address }}
       etcd_hosts:
@@ -139,6 +143,7 @@ pgbackrest_config:
       - /etc/pgbackrest.conf:
         - source: salt://{{ slspath }}/files/etc/pgbackrest.conf.j2
     - context:
+      postgresql_data_directory: {{ postgresql_data_directory }}
       postgresql_port: {{ postgresql_port }}
       minio_url: {{ minio_url }}
 
@@ -157,10 +162,10 @@ pgbackrest_init_helper:
   {%- for stanza_name, stanza_data in pillar.pgbackrest.config.stanzas.items() %}
 pgbackrest_create_stanza_{{ stanza_name }}:
   cmd.run:
-    - name: /usr/bin/pgbackrest-init {{ stanza_name }} {{ pillar.postgresql.datadir }}
-    - cwd: {{ pillar.postgresql.datadir }}
+    - name: /usr/bin/pgbackrest-init {{ stanza_name }} {{ pillar_postgresql.data_directory }}
+    - cwd: {{ pillar_postgresql.data_directory }}
     - runas: postgres
-    - creates: {{ pillar.postgresql.datadir }}/pgbackrest-stanza-created
+    - creates: {{ pillar_postgresql.data_directory }}/pgbackrest-stanza-created
     - require:
       - patroni_service
       - pgbackrest_config

@@ -1,8 +1,8 @@
 # postgresql
 {%- set postgresql_locale                 = 'C.UTF-8' %}
-{%- set postgresql_version                = 14 %}
+{%- set postgresql_version                = 16 %}
 {%- set postgresql_instances_dir          = '/srv/patroni/' %}
-{%- set postgresql_data_dir               = postgresql_instances_dir ~ postgresql_version ~ '/data' %}
+{%- set postgresql_data_directory         = postgresql_instances_dir ~ postgresql_version ~ '/data' %}
 
 {%- set postgresql_password_encryption    = 'scram-sha-256' %}
 {%- set postgresql_auth_method            = postgresql_password_encryption ~ ' clientcert=verify-full' %}
@@ -50,7 +50,7 @@ pgbackrest:
 postgresql:
   version: {{ postgresql_version }}
   instancesdir: {{ postgresql_instances_dir }}
-  datadir: {{ postgresql_data_dir }}
+  data_directory: {{ postgresql_data_directory }}
   locale: {{ postgresql_locale }}
   # example for "needs client cert and password"
   client:
@@ -109,4 +109,4 @@ postgresql:
 
 sysconfig:
   postgresql:
-    postgres_datadir: {{ postgresql_data_dir }}
+    postgres_data_directory: {{ postgresql_data_directory }}
