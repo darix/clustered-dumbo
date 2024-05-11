@@ -1,3 +1,5 @@
+{%- import_yaml './defaults.sls' as default_settings %}
+
 {%- set pillar_postgresql = salt['patroni_helpers.pillar_postgresql']() %}
 {%- set pillar_pgbackrest = salt['patroni_helpers.pillar_pgbackrest']() %}
 {%- set pillar_patroni    = salt['patroni_helpers.pillar_patroni']() %}
