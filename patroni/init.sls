@@ -32,7 +32,7 @@ postgresql_packages:
 {%- if "modules" in pillar_postgresql and pillar_postgresql.modules|length > 0 %}
   {%- for module in pillar_postgresql.modules %}
       - postgresql{{ pillar_postgresql.version }}-{{ module }}
-  {%- endif %}
+  {%- endfor %}
 {%- endif %}
 
 patroni_cluster_packages:
