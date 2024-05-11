@@ -1,3 +1,6 @@
+{%- set pillar_postgresql = salt['patroni_helpers.pillar_postgresql']() %}
+{%- set pillar_patroni    = salt['patroni_helpers.pillar_patroni']() %}
+
 {%-   set bootstrap_method = 'pgbackrest' %}
 {%- if pillar_patroni.initialize_cluster %}
 {%-   set bootstrap_method = 'initdb' %}

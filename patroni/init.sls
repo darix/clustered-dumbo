@@ -1,9 +1,9 @@
 {%- import_yaml './defaults.sls' as default_settings %}
 
-{%- set pillar_postgresql = pillar.get('postgresql', defaults=default_settings.get('postgresql', {}), merge=True) %}
-{%- set pillar_pgbackrest = pillar.get('pgbackrest', defaults=default_settings.get('pgbackrest', {}), merge=True) %}
-{%- set pillar_patroni    = pillar.get('patroni',    defaults=default_settings.get('patroni', {}),    merge=True) %}
-{%- set pillar_etcd       = pillar.get('etcd',       defaults=default_settings.get('etcd', {}),       merge=True) %}
+{%- set pillar_postgresql = salt['patroni_helpers.pillar_postgresql']() %}
+{%- set pillar_pgbackrest = salt['patroni_helpers.pillar_pgbackrest']() %}
+{%- set pillar_patroni    = salt['patroni_helpers.pillar_patroni']() %}
+{%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd']() %}
 
 {%- set own_cluster_ip_address  = salt['mine.get'](grains.id,                    'mgmt_ip_addrs')[grains.id][0]        %}
 {%- set cluster_ip_addresses    = salt['mine.get'](pillar_patroni.cluster_role,  'mgmt_ip_addrs', tgt_type='compound') %}
@@ -63,7 +63,6 @@ sysconfig_etcd:
         - source: salt://{{ slspath }}/files/etc/sysconfig/etcd.j2
     - context:
       patroni_cluster_role: {{ pillar_patroni.cluster_role }}
-      pillar_etcd:         {{ pillar_etcd }}
       own_ip:              {{ own_cluster_ip_address }}
       etcd_protocol:       {{ etcd_protocol }}
       etcd_client_port:    {{ etcd_client_port }}
@@ -112,8 +111,6 @@ patroni_config:
       - /etc/patroni.yml:
         - source: salt://{{ slspath }}/files/etc/patroni.yml.j2
     - context:
-      pillar_postgresql: {{ pillar_postgresql }}
-      pillar_patroni:    {{ pillar_patroni }}
       pgbackrest_stanza: {{ pillar_pgbackrest.stanza }}
       postgresql_locale: {{ pillar_postgresql.get('locale', 'C.UTF-8') }}
       postgresql_password_encryption: {{ pillar_postgresql.get('parameters:password_encryption', 'scram-sha-256') }}
@@ -167,7 +164,6 @@ pgbackrest_config:
       - /etc/pgbackrest.conf:
         - source: salt://{{ slspath }}/files/etc/pgbackrest.conf.j2
     - context:
-      pillar_pgbackrest: {{ pillar_pgbackrest }}
       postgresql_data_directory: {{ postgresql_data_directory }}
       postgresql_port: {{ postgresql_port }}
       minio_url: {{ minio_url }}

@@ -1,3 +1,4 @@
+{%- set pillar_pgbackrest = salt['patroni_helpers.pillar_pgbackrest']() %}
 [global]
 {%- for key, value in pillar_pgbackrest.config.global.items() %}
 {{ key }}={{ value }}

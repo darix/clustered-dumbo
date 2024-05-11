@@ -1,3 +1,5 @@
+{%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd']() %}
+
 {%- set etcd_cluster_urls        =  salt['patroni_helpers.mine_etcd_cluster_url'](patroni_cluster_role, 'mgmt_ip_addrs') %}
 
 {%- set etcd_own_host_client_url = etcd_protocol ~ '://' ~ grains.id ~ ':' ~ etcd_client_port %}
