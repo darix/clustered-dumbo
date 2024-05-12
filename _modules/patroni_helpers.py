@@ -27,28 +27,28 @@ cached_pillar_etcd = None
 def pillar_postgresql(default_settings={}):
     global cached_pillar_postgresql
     if cached_pillar_postgresql is None:
-        cached_pillar_postgresql = __pillar__.get('postgresql', defaults=default_settings.get('postgresql', {}), merge=True)
+        cached_pillar_postgresql = __salt__['pillar.get']('postgresql', default=default_settings.get('postgresql', {}), merge=True)
     return cached_pillar_postgresql
 
 def pillar_pgbackrest(default_settings={}):
     global cached_pillar_pgbackrest
     if cached_pillar_pgbackrest is None:
-        cached_pillar_pgbackrest = __pillar__.get('pgbackrest', defaults=default_settings.get('pgbackrest', {}), merge=True)
+        cached_pillar_pgbackrest = __salt__['pillar.get']('pgbackrest', default=default_settings.get('pgbackrest', {}), merge=True)
     return cached_pillar_pgbackrest
 
 def pillar_patroni(default_settings={}):
     global cached_pillar_patroni
     if cached_pillar_patroni is None:
-        cached_pillar_patroni = __pillar__.get('patroni',    defaults=default_settings.get('patroni', {}),    merge=True)
+        cached_pillar_patroni = __salt__['pillar.get']('patroni',    default=default_settings.get('patroni', {}),    merge=True)
     return cached_pillar_patroni
 
 def pillar_etcd(default_settings={}):
     global cached_pillar_etcd
     if cached_pillar_etcd is None:
-        cached_pillar_etcd = __pillar__.get('etcd',       defaults=default_settings.get('etcd', {}),       merge=True)
+        cached_pillar_etcd = __salt__['pillar.get']('etcd',       default=default_settings.get('etcd', {}),       merge=True)
     return cached_pillar_etcd
 
-def pg_hba_rules(config_data, auth_scope):
+def pg_hba_rules(pillar_postgresql, config_data, auth_scope):
     rules = []
     if 'mine_target' in config_data and 'mine_functions' in config_data:
         host_addresses = __salt__['mine.get'](config_data['mine_target'], config_data['mine_functions'], tgt_type='compound')
@@ -57,14 +57,13 @@ def pg_hba_rules(config_data, auth_scope):
                 data = [data]
             for address in data:
                 config_data['address'] = address
-                rules.append(pg_hba_single_rule(config_data, auth_scope))
+                rules.append(pg_hba_single_rule(pillar_postgresql, config_data, auth_scope))
     else:
-        rules.append(pg_hba_single_rule(config_data, auth_scope))
+        rules.append(pg_hba_single_rule(pillar_postgresql, config_data, auth_scope))
     return rules
 
 
-def pg_hba_fetch_value_or_default(config_data, auth_scope, option_name, default=None):
-    pillar_postgresql = pillar_postgresql()
+def pg_hba_fetch_value_or_default(pillar_postgresql, config_data, auth_scope, option_name, default=None):
     if auth_scope in pillar_postgresql and option_name in pillar_postgresql[auth_scope]:
         value = pillar_postgresql[auth_scope][option_name]
     else:
@@ -87,31 +86,31 @@ def add_missing_netmask(value):
     return value
 
 
-def pg_hba_single_rule(config_data, auth_scope):
+def pg_hba_single_rule(pillar_postgresql, config_data, auth_scope):
     rule_elements = []
-    rule_elements.append(pg_hba_fetch_value_or_default(config_data, auth_scope, 'auth_type', 'hostssl'))
-    rule_elements.append(pg_hba_fetch_value_or_default(config_data, auth_scope, 'databases', 'nonexistant-db-check-your-pillar'))
-    rule_elements.append(pg_hba_fetch_value_or_default(config_data, auth_scope, 'user', 'nonexistant-user-check-your-pillar'))
-    rule_elements.append(pg_hba_fetch_value_or_default(config_data, auth_scope, 'address'))
-    rule_elements.append(pg_hba_fetch_value_or_default(config_data, auth_scope, 'auth_method', 'scram-sha-256 clientcert=verify-full'))
+    rule_elements.append(pg_hba_fetch_value_or_default(pillar_postgresql, config_data, auth_scope, 'auth_type', 'hostssl'))
+    rule_elements.append(pg_hba_fetch_value_or_default(pillar_postgresql, config_data, auth_scope, 'databases', 'nonexistant-db-check-your-pillar'))
+    rule_elements.append(pg_hba_fetch_value_or_default(pillar_postgresql, config_data, auth_scope, 'user', 'nonexistant-user-check-your-pillar'))
+    rule_elements.append(pg_hba_fetch_value_or_default(pillar_postgresql, config_data, auth_scope, 'address'))
+    rule_elements.append(pg_hba_fetch_value_or_default(pillar_postgresql, config_data, auth_scope, 'auth_method', 'scram-sha-256 clientcert=verify-full'))
     return '    '.join(rule_elements)
 
 
-def rules():
-    pg_pillar = pillar_postgresql()
+def rules(pillar_postgresql):
+    pg_pillar = pillar_postgresql
 
     rules = []
 
     if 'pg_hba' in pg_pillar:
         for identifier, config_data in pg_pillar['pg_hba'].items():
-            rules += pg_hba_rules(config_data, 'client')
+            rules += pg_hba_rules(pillar_postgresql, config_data, 'client')
 
     patroni_cluster_role = pillar_patroni()['cluster_role']
-    rules += pg_hba_rules({'mine_target': patroni_cluster_role,  'mine_functions': 'mgmt_ip_addrs'}, 'replication')
+    rules += pg_hba_rules(pillar_postgresql, {'mine_target': patroni_cluster_role,  'mine_functions': 'mgmt_ip_addrs'}, 'replication')
 
     if 'pg_hba_defaults' in pg_pillar:
         for identifier, config_data in pg_pillar['pg_hba_defaults'].items():
-            rules += pg_hba_rules(config_data, 'client')
+            rules += pg_hba_rules(pillar_postgresql, config_data, 'client')
 
     return rules
 
@@ -136,9 +135,9 @@ def cacert(subpillar):
     return cacert
 
 
-def pg_setting_or_default(settings, key, default_pillar_key=None, default_value=None):
-    if key in pillar_postgresql()['parameters']:
-        value = pillar_postgresql()['parameters'][key]
+def pg_setting_or_default(pillar_postgresql, settings, key, default_pillar_key=None, default_value=None):
+    if key in pillar_postgresql['parameters']:
+        value = pillar_postgresql['parameters'][key]
     else:
         if default_pillar_key in __pillar__:
             value = __pillar__[default_pillar_key]
@@ -148,18 +147,17 @@ def pg_setting_or_default(settings, key, default_pillar_key=None, default_value=
         settings[key] = value
 
 
-def settings():
+def settings(pillar_postgresql, pgbackrest_stanza):
     result = {}
-    if 'parameters' in pillar_postgresql():
-        for parameter, value in pillar_postgresql()['parameters'].items():
+    if 'parameters' in pillar_postgresql:
+        for parameter, value in pillar_postgresql['parameters'].items():
             result[parameter] = value
-    pgbackrest_stanza = pillar_pgbackrest()['stanza']
-    pg_setting_or_default(result, 'archive_command',          default_value='/usr/bin/pgbackrest --stanza=' + pgbackrest_stanza + ' archive-push "%p"' )
-    pg_setting_or_default(result, 'restore_command',          default_value='/usr/bin/pgbackrest --stanza=' + pgbackrest_stanza + ' archive-get %f "%p"' )
-    pg_setting_or_default(result, 'ssl_min_protocol_version', default_pillar_key='ssl_minimum_version' )
-    pg_setting_or_default(result, 'ssl_max_protocol_version', default_pillar_key='ssl_maximum_version' )
-    pg_setting_or_default(result, 'ssl_ciphers',              default_pillar_key='ssl_ciphers' )
-    pg_setting_or_default(result, 'ssl_ca_file',              default_pillar_key='local_ca_cert' )
+    pg_setting_or_default(pillar_postgresql, result, 'archive_command',          default_value='/usr/bin/pgbackrest --stanza=' + pgbackrest_stanza + ' archive-push "%p"' )
+    pg_setting_or_default(pillar_postgresql, result, 'restore_command',          default_value='/usr/bin/pgbackrest --stanza=' + pgbackrest_stanza + ' archive-get %f "%p"' )
+    pg_setting_or_default(pillar_postgresql, result, 'ssl_min_protocol_version', default_pillar_key='ssl_minimum_version' )
+    pg_setting_or_default(pillar_postgresql, result, 'ssl_max_protocol_version', default_pillar_key='ssl_maximum_version' )
+    pg_setting_or_default(pillar_postgresql, result, 'ssl_ciphers',              default_pillar_key='ssl_ciphers' )
+    pg_setting_or_default(pillar_postgresql, result, 'ssl_ca_file',              default_pillar_key='local_ca_cert' )
     return result
 
 

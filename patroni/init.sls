@@ -62,6 +62,7 @@ sysconfig_etcd:
       - /etc/sysconfig/etcd:
         - source: salt://{{ slspath }}/files/etc/sysconfig/etcd.j2
     - context:
+      pillar_etcd: {{ pillar_etcd }}
       patroni_cluster_role: {{ pillar_patroni.cluster_role }}
       own_ip:              {{ own_cluster_ip_address }}
       etcd_protocol:       {{ etcd_protocol }}
@@ -111,22 +112,25 @@ patroni_config:
       - /etc/patroni.yml:
         - source: salt://{{ slspath }}/files/etc/patroni.yml.j2
     - context:
+      pillar_postgresql: {{ pillar_postgresql }}
+      pillar_patroni:    {{ pillar_patroni }}
       pgbackrest_stanza: {{ pillar_pgbackrest.stanza }}
       postgresql_locale: {{ pillar_postgresql.get('locale', 'C.UTF-8') }}
       postgresql_password_encryption: {{ pillar_postgresql.get('parameters:password_encryption', 'scram-sha-256') }}
       postgresql_port: {{ postgresql_port }}
       own_cluster_ip_address: {{ own_cluster_ip_address }}
+      # TODO: this code needs error handling it happily sets None as value
       etcd_hosts:
         {%- for minion_id, fqdn in cluster_fqdns.items() %}
         - {{ fqdn }}:{{ etcd_client_port }}
         {%- endfor %}
       pg_hba:
         # rules from the pillar
-        {%- for rule in salt['patroni_helpers.rules']() %}
+        {%- for rule in salt['patroni_helpers.rules'](pillar_postgresql=pillar_postgresql) %}
         - '{{ rule }}'
         {%- endfor %}
       pg_settings:
-        {%- for parameter, value in salt['patroni_helpers.settings']().items() %}
+        {%- for parameter, value in salt['patroni_helpers.settings'](pillar_postgresql=pillar_postgresql, pgbackrest_stanza=pillar_pgbackrest.stanza).items() %}
         {{ parameter }}: '{{ value }}'
         {%- endfor %}
         {%- if 'use_synchronous_commit' in pillar_patroni and pillar_patroni.use_synchronous_commit %}
@@ -157,13 +161,12 @@ pgbackrest_config:
     - group: postgres
     - template: jinja
     - require:
-      - patroni_cluster_packages
       - pgbackrest_packages
-      - pgbackrest_config
     - names:
       - /etc/pgbackrest.conf:
         - source: salt://{{ slspath }}/files/etc/pgbackrest.conf.j2
     - context:
+      pillar_pgbackrest: {{ pillar_pgbackrest }}
       postgresql_data_directory: {{ postgresql_data_directory }}
       postgresql_port: {{ postgresql_port }}
       minio_url: {{ minio_url }}

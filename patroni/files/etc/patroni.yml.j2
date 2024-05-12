@@ -1,7 +1,3 @@
-{%- import_yaml './defaults.sls' as default_settings %}
-{%- set pillar_postgresql = salt['patroni_helpers.pillar_postgresql'](default_settings=default_settings) %}
-{%- set pillar_patroni    = salt['patroni_helpers.pillar_patroni'](default_settings=default_settings) %}
-
 {%-   set bootstrap_method = 'pgbackrest' %}
 {%- if pillar_patroni.initialize_cluster %}
 {%-   set bootstrap_method = 'initdb' %}

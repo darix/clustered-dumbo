@@ -1,5 +1,3 @@
-{%- import_yaml './defaults.sls' as default_settings %}
-{%- set pillar_pgbackrest = salt['patroni_helpers.pillar_pgbackrest'](default_settings=default_settings) %}
 [global]
 {%- for key, value in pillar_pgbackrest.config.global.items() %}
 {{ key }}={{ value }}
