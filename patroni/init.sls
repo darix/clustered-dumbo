@@ -1,9 +1,9 @@
 {%- import_yaml './defaults.sls' as default_settings %}
 
-{%- set pillar_postgresql = salt['patroni_helpers.pillar_postgresql']() %}
-{%- set pillar_pgbackrest = salt['patroni_helpers.pillar_pgbackrest']() %}
-{%- set pillar_patroni    = salt['patroni_helpers.pillar_patroni']() %}
-{%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd']() %}
+{%- set pillar_postgresql = salt['patroni_helpers.pillar_postgresql'](default_settings=default_settings) %}
+{%- set pillar_pgbackrest = salt['patroni_helpers.pillar_pgbackrest'](default_settings=default_settings) %}
+{%- set pillar_patroni    = salt['patroni_helpers.pillar_patroni'](default_settings=default_settings) %}
+{%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd'](default_settings=default_settings) %}
 
 {%- set own_cluster_ip_address  = salt['mine.get'](grains.id,                    'mgmt_ip_addrs')[grains.id][0]        %}
 {%- set cluster_ip_addresses    = salt['mine.get'](pillar_patroni.cluster_role,  'mgmt_ip_addrs', tgt_type='compound') %}

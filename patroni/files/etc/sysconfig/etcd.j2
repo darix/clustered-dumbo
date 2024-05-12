@@ -1,4 +1,5 @@
-{%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd']() %}
+{%- import_yaml './defaults.sls' as default_settings %}
+{%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd'](default_settings=default_settings) %}
 
 {%- set etcd_cluster_urls        =  salt['patroni_helpers.mine_etcd_cluster_url'](patroni_cluster_role, 'mgmt_ip_addrs') %}
 
