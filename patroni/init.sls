@@ -43,7 +43,7 @@ patroni_cluster_packages:
       - {{ pillar_patroni.config.dcs }}
       - patroni
 
-pgbackest_packages:
+pgbackrest_packages:
   pkg.installed:
     - names:
       - pgbackrest
