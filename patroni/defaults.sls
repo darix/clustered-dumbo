@@ -13,13 +13,16 @@
 
 {%- set server_cert_filename = "/etc/step/certs/generic.host.full.pem" %}
 {%- set client_cert_filename = "/etc/step/certs/generic.user.full.pem" %}
+{%- set ca_certs_filename    = pillar.step.client_config.ca.root_cert.path %}
 
 
 etcd:
   server_cert:   {{ server_cert_filename }}
   client_cert:   {{ client_cert_filename }}
+  ca_cert:       {{ ca_certs_filename }}
 
 patroni:
+  ca_cert:       {{ ca_certs_filename }}
   initialize_cluster: false
   use_synchronous_commit: {{ postgresql_use_synchronous_commit }}
   config:
@@ -28,6 +31,7 @@ patroni:
     use_synchronous_commit: {{ postgresql_use_synchronous_commit }}
 
 pgbackrest:
+  ca_cert:       {{ ca_certs_filename }}
   config:
     global:
       process-max:          4
@@ -49,6 +53,7 @@ pgbackrest:
       repo1-s3-bucket:      pgbackrest
 
 postgresql:
+  ca_cert:       {{ ca_certs_filename }}
   version: {{ postgresql_version }}
   instancesdir: {{ postgresql_instances_dir }}
   data_directory: {{ postgresql_data_directory }}
@@ -92,6 +97,7 @@ postgresql:
     ssl_cert_file: {{ server_cert_filename }}
     ssl_key_file: {{ server_cert_filename }}
     ssl_dh_params_file: {{ server_cert_filename }}
+    ssl_ca_file: {{ ca_certs_filename }}
   pg_hba_defaults:
     # replication user for local access with password
     replication_local_password_access:

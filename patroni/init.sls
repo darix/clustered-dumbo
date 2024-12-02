@@ -23,8 +23,6 @@
 {%- endif %}
 {%- set postgresql_data_directory = pillar_postgresql.data_directory %}
 
-{%- set postgresql_cacert = salt['patroni_helpers.cacert']('patroni') %}
-
 postgresql_packages:
   pkg.installed:
     - names:
