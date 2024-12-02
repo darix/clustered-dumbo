@@ -1,3 +1,4 @@
+#!py
 '''
 Helpers for our patroni cluster
 ===============================
@@ -117,14 +118,13 @@ def rules(pillar_postgresql):
 def cacert(subpillar):
     cacert = ''
     pillar_for_cacert = {}
-    match subpillar:
-        case 'patroni':
+    if subpillar ==  'patroni':
             pillar_for_cacert = pillar_patroni()
-        case 'etcd':
+    elif subpillar ==  'etcd':
             pillar_for_cacert = pillar_etcd()
-        case 'postgresql':
+    elif subpillar ==  'postgresql':
             pillar_for_cacert = pillar_postgresql()
-        case 'pgbackrest':
+    elif subpillar ==  'pgbackrest':
             pillar_for_cacert = pillar_pgbackrest()
 
     if 'cacert' in pillar_for_cacert:
