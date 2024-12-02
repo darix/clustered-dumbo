@@ -76,7 +76,8 @@ sysconfig_etcd:
       etcd_peer_port:      {{ etcd_peer_port }}
 
 etcd_service:
-  service.running:
+  # service.running:
+  service.dead:
     - name: etcd.service
     - enable: true
     - watch:
@@ -145,7 +146,7 @@ patroni_config:
         {%- endif %}
 
 patroni_service:
-  service.running:
+  service.disabled:
     - name: patroni.service
     - enable: true
     - watch:
