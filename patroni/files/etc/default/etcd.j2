@@ -36,7 +36,7 @@ ETCD_LISTEN_CLIENT_URLS="{{ etcd_own_ip_client_url }},{{ etcd_protocol }}://loca
 #ETCD_CORS=""
 #
 #[cluster]
-ETCD_INITIAL_ADVERTISE_PEER_URLS="{{ etcd_own_host_client_url }}"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="{{ etcd_own_host_peer_url }}"
 # if you use different ETCD_NAME (e.g. test), set ETCD_INITIAL_CLUSTER value for this name, i.e. "test=http://..."
 ETCD_INITIAL_CLUSTER="{{ etcd_cluster_urls }}"
 ETCD_INITIAL_CLUSTER_STATE="{{ etcd_initial_cluster_state }}"
