@@ -128,7 +128,7 @@ def cacert(subpillar):
             pillar_for_cacert = pillar_pgbackrest()
 
     if 'ca_cert' in pillar_for_cacert:
-        cacert = pillar_for_cacert.ca_cert
+        cacert = pillar_for_cacert.get('ca_cert')
     else:
         if 'local_ca_cert' in __pillar__:
             cacert = __pillar__['local_ca_cert']
