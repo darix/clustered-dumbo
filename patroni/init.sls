@@ -30,7 +30,7 @@ postgresql_packages:
     - names:
       - postgresql{{ pillar_postgresql.version }}-server
       - postgresql{{ pillar_postgresql.version }}-contrib
-      {%- if grains.osfullname in ['openSUSE Tumbleweed', 'Leap'] or %}
+      {%- if grains.osfullname in ['openSUSE Tumbleweed', 'Leap'] %}
       - postgresql{{ pillar_postgresql.version }}-llvmjit
       {%- endif %}
 {%- if "modules" in pillar_postgresql and pillar_postgresql.modules|length > 0 %}
