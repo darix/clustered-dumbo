@@ -11,18 +11,19 @@
 
 {%- set patroni_dcs = 'etcd' %}
 
-{%- set patroni_server_cert_name      = "/etc/ssl/services/patroni.host.pem" %}
-{%- set postgresql_server_cert_name   = "/etc/ssl/services/pg.host.pem" %}
-{%- set etcd_server_cert_name         = "/etc/ssl/services/etcd.host.pem" %}
+{%- set server_cert_filename = "/etc/step/certs/generic.host.full.pem" %}
+{%- set client_cert_filename = "/etc/step/certs/generic.user.full.pem" %}
+
 
 etcd:
-  cert:   {{ etcd_server_cert_name }}
+  server_cert:   {{ server_cert_filename }}
+  client_cert:   {{ client_cert_filename }}
 
 patroni:
   initialize_cluster: false
   use_synchronous_commit: {{ postgresql_use_synchronous_commit }}
   config:
-    cert: {{ patroni_server_cert_name }}
+    cert: {{ server_cert_filename }}
     dcs: {{ patroni_dcs }}
     use_synchronous_commit: {{ postgresql_use_synchronous_commit }}
 
@@ -88,9 +89,9 @@ postgresql:
     lc_time: '{{ postgresql_locale }}'
     #
     ssl: "on"
-    ssl_cert_file: {{ postgresql_server_cert_name }}
-    ssl_key_file: {{ postgresql_server_cert_name }}
-    ssl_dh_params_file: {{ postgresql_server_cert_name }}
+    ssl_cert_file: {{ server_cert_filename }}
+    ssl_key_file: {{ server_cert_filename }}
+    ssl_dh_params_file: {{ server_cert_filename }}
   pg_hba_defaults:
     # replication user for local access with password
     replication_local_password_access:
