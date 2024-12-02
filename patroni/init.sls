@@ -39,8 +39,14 @@ postgresql_packages:
 
 patroni_cluster_packages:
   pkg.installed:
-    - names:
+    - pkgs:
+      {%- if pillar_patroni.config.dcs== 'etcd' %}
+      - etcdutl: '>= 3.5.17'
+      - etcdctl: '>= 3.5.17'
+      - etcd:    '>= 3.5.17'
+      {%- else %}
       - {{ pillar_patroni.config.dcs }}
+      {%- endif %}
       - patroni
 
 pgbackrest_packages:
@@ -59,8 +65,8 @@ sysconfig_etcd:
     - require:
       - patroni_cluster_packages
     - names:
-      - /etc/sysconfig/etcd:
-        - source: salt://{{ slspath }}/files/etc/sysconfig/etcd.j2
+      - /etc/default/etcd:
+        - source: salt://{{ slspath }}/files/etc/default/etcd.j2
     - context:
       pillar_etcd: {{ pillar_etcd }}
       patroni_cluster_role: {{ pillar_patroni.cluster_role }}
