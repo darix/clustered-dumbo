@@ -168,7 +168,7 @@ def get_etcd_url(minion_id, hostname, protocol, port ):
 def mine_etcd_cluster_url(selector, key, etcd_protocol="https", etcd_port=2380, tgt_type='compound'):
     join_character = ','
     result_list = []
-    for minion_id, data in __salt__['mine.get']( selector, key, tgt_type=tgt_type).items().dictsort():
+    for minion_id, data in __salt__['mine.get']( selector, key, tgt_type=tgt_type).items():
         if isinstance(data, list):
             for address in data:
                 result_list.append(get_etcd_url(minion_id, address, etcd_protocol, etcd_port))
