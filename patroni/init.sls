@@ -153,12 +153,6 @@ patroni_service:
     - require:
       - patroni_config
       - pgbackrest_config
-      #
-      # {%- if 'initialize_cluster' in pillar_patroni and pillar_patroni.initialize_cluster and 'initialize_pgbackrest' in pillar_patroni and pillar_patroni.initialize_pgbackrest %}  # noqa: 204
-      #   {%- for stanza_name, stanza_data in pillar_pgbackrest.config.stanzas.items() %}
-      # - pgbackrest_create_stanza_{{ stanza_name }}:
-      #   {%- endfor %}
-      # {%- endif %}
 
 pgbackrest_config:
   file.managed:
@@ -188,14 +182,14 @@ pgbackrest_init_helper:
       - /usr/bin/pgbackrest-init:
         - source: salt://{{ slspath }}/files/usr/bin/pgbackrest-init
 
-{%- if 'initialize_cluster' in pillar_patroni and pillar_patroni.initialize_cluster and 'initialize_pgbackrest' in pillar_patroni and pillar_patroni.initialize_pgbackrest %}  # noqa: 204
+{%- if 'initialize_cluster' in pillar_patroni and pillar_patroni.initialize_cluster %}  # noqa: 204
   {%- for stanza_name, stanza_data in pillar_pgbackrest.config.stanzas.items() %}
 pgbackrest_create_stanza_{{ stanza_name }}:
   cmd.run:
     - name: /usr/bin/pgbackrest-init {{ stanza_name }} {{ pillar_postgresql.data_directory }}
     - cwd: {{ pillar_postgresql.data_directory }}
     - runas: postgres
-    - creates: {{ pillar_postgresql.data_directory }}/pgbackrest-stanza-created
+    - creates: {{ pillar_postgresql.data_directory }}/pgbackrest-stanza-created-{{ stanza_name }}
     - require:
       - patroni_service
       - pgbackrest_init_helper
