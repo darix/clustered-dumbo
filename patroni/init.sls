@@ -16,7 +16,7 @@
 {%- set etcd_peer_port      = 2380 %}
 
 
-{%- set minio_url = 'https://' ~ grains.id ~ ':9000/' %}
+{%- set minio_url = pillar.pgbackrest.get('minio_url', 'https://' ~ grains.id ~ ':9000/') %}
 {%- set postgresql_port = 5432 %}
 {%- if 'port' in pillar_postgresql.parameters %}
 {%- set postgresql_port = pillar_postgresql.parameters.port %}
