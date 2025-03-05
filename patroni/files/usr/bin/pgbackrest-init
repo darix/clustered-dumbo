@@ -2,7 +2,7 @@
 PGBACKREST=/usr/bin/pgbackrest
 STANZA="$1"
 PGDATADIR="$2"
-PGBACKREST_INIT_DONE="${PGDATADIR}/pgbackrest-stanza-created"
+PGBACKREST_INIT_DONE="${PGDATADIR}/pgbackrest-stanza-created-${STANZA}"
 
 if [ "x${STANZA}" = "x" ]; then
   echo "stanza can not be empty"
@@ -17,7 +17,7 @@ fi
 if ! [ -e "${PGBACKREST_INIT_DONE}" ] ; then
   if ${PGBACKREST} info | grep -q "No stanzas exist in the repository." ; then
     ${PGBACKREST} stanza-create --stanza="${STANZA}"
-    touch "${PGBACKREST_INIT_DONE}-${STANZA}"
+    touch "${PGBACKREST_INIT_DONE}"
     if ${PGBACKREST} info | grep -q "no valid backups" ; then
       ${PGBACKREST} backup --stanza="${STANZA}"
     fi
