@@ -1,6 +1,6 @@
 # postgresql
 {%- set postgresql_locale                 = 'C.UTF-8' %}
-{%- set postgresql_version                = 16 %}
+{%- set postgresql_version                = 17 %}
 {%- set postgresql_instances_dir          = '/srv/patroni/' %}
 {%- set postgresql_data_directory         = postgresql_instances_dir ~ postgresql_version ~ '/data' %}
 
