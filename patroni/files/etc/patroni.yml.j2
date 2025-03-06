@@ -124,12 +124,15 @@ postgresql:
   use_unix_socket_repl: true
   data_dir: {{ pillar_postgresql.data_directory }}
   authentication:
+    {%- set ssl_prefix = pillar.patroni.get('ssl_prefix', '/etc/ssl/services/pg.') %}
+    {%- set ssl_suffix = pillar.patroni.get('ssl_suffix', '.pem') %}
     {%- for blockname, blockdata in pillar_postgresql.authentication.items() %}
+    {%- set ssl_cert = ssl_prefix ~ blockdata.username ~ ssl_suffix %}
     {{ blockname }}:
       username: {{ blockdata.username }}
       password: {{ blockdata.password }}
-      sslkey:   /etc/ssl/services/pg.{{ blockdata.username }}.pem
-      sslcert:  /etc/ssl/services/pg.{{ blockdata.username }}.pem
+      sslkey:   {{ ssl_cert }}
+      sslcert:  {{ ssl_cert }}
       sslrootcert: {{ cacert }}
       sslmode: verify-full
     {%- endfor %}
