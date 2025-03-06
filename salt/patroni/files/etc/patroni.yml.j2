@@ -2,6 +2,8 @@
 {%- if pillar_patroni.initialize_cluster %}
 {%-   set bootstrap_method = 'initdb' %}
 {%- endif %}
+{%- set ssl_prefix = pillar.patroni.get('ssl_prefix', '/etc/ssl/services/pg.') %}
+{%- set ssl_suffix = pillar.patroni.get('ssl_suffix', '.pem') %}
 # better names for those 2 settings are
 # teamname
 scope: {{ pillar_patroni.config.scope }}
@@ -11,6 +13,11 @@ namespace: /{{ pillar_patroni.config.namespace }}/
 name: {{ grains.id }}
 
 {%- set cacert = salt['patroni_helpers.cacert']('patroni') %}
+    {%- set ssl_cert = ssl_prefix ~ 'patroni' ~ ssl_suffix %}
+
+ctl:
+  certfile: {{ ssl_cert }}
+  keyfile:  {{ ssl_cert }}
 
 restapi:
   listen:          {{ own_cluster_ip_address }}:8008
@@ -124,8 +131,6 @@ postgresql:
   use_unix_socket_repl: true
   data_dir: {{ pillar_postgresql.data_directory }}
   authentication:
-    {%- set ssl_prefix = pillar.patroni.get('ssl_prefix', '/etc/ssl/services/pg.') %}
-    {%- set ssl_suffix = pillar.patroni.get('ssl_suffix', '.pem') %}
     {%- for blockname, blockdata in pillar_postgresql.authentication.items() %}
     {%- set ssl_cert = ssl_prefix ~ blockdata.username ~ ssl_suffix %}
     {{ blockname }}:

@@ -48,7 +48,7 @@ step:
             - etcd
             - nagios
             - postgres
-{%- for pg_user in ['postgres', 'replicator', 'rewind_user'] %}
+{%- for pg_user in ['postgres', 'replicator', 'rewind_user', 'patroni'] %}
       'pg.{{ pg_user }}':
         cn: {{ pg_user }}
         san:
