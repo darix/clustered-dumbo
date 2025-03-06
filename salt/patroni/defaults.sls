@@ -1,6 +1,6 @@
 # postgresql
 {%- set postgresql_locale                 = 'C.UTF-8' %}
-{%- set postgresql_version                = 17 %}
+{%- set postgresql_version                = pillar.postgresql.get('version', 17) %}
 {%- set postgresql_instances_dir          = '/srv/patroni/' %}
 {%- set postgresql_data_directory         = postgresql_instances_dir ~ postgresql_version ~ '/data' %}
 
@@ -113,3 +113,9 @@ postgresql:
       user: postgres
       address:
       auth_method: ident
+    # for pg_rewind
+    rewind_user:
+      databases: postgres
+      user: rewind_user
+      mine_target:    {{ pillar.patroni.cluster_role }}
+      mine_functions: {{ pillar.patroni.cluster_mine_function }}
