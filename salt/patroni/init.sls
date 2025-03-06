@@ -124,7 +124,7 @@ patroni_config:
       pillar_patroni:    {{ pillar_patroni }}
       pgbackrest_stanza: {{ pillar_pgbackrest.stanza }}
       postgresql_locale: {{ pillar_postgresql.get('locale', 'C.UTF-8') }}
-      postgresql_password_encryption: {{ pillar_postgresql.get('parameters:password_encryption', 'scram-sha-256') }}
+      postgresql_password_encryption: {{ salt['patroni_helpers.password_encryption']() }}
       postgresql_port: {{ postgresql_port }}
       own_cluster_ip_address: {{ own_cluster_ip_address }}
       # TODO: this code needs error handling it happily sets None as value

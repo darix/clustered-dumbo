@@ -175,3 +175,9 @@ def mine_etcd_cluster_url(selector, key, etcd_protocol="https", etcd_port=2380, 
         else:
             result_list.append(get_etcd_url(minion_id, data, etcd_protocol, etcd_port))
     return join_character.join(result_list)
+
+def password_encryption():
+    ret = 'scram-sha-256'
+    if 'postgresql' in __pillar__ and 'parameters' in __pillar__['postgresql'] and 'password_encryption' in __pillar__['postgresql']['parameters']:
+        ret = __pillar__['postgresql']['parameters']['password_encryption']
+    return ret

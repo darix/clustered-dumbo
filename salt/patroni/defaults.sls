@@ -4,7 +4,7 @@
 {%- set postgresql_instances_dir          = '/srv/patroni/' %}
 {%- set postgresql_data_directory         = postgresql_instances_dir ~ postgresql_version ~ '/data' %}
 
-{%- set postgresql_password_encryption    = 'scram-sha-256' %}
+{%- set postgresql_password_encryption    = salt['patroni_helpers.password_encryption']() %}
 {%- set postgresql_auth_method            = postgresql_password_encryption ~ ' clientcert=verify-full' %}
 
 {%- set postgresql_use_synchronous_commit = false %}
