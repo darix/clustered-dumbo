@@ -26,6 +26,7 @@
 postgresql_packages:
   pkg.installed:
     - names:
+      - sudo
       - postgresql{{ pillar_postgresql.version }}
       - postgresql{{ pillar_postgresql.version }}-server
       - postgresql{{ pillar_postgresql.version }}-contrib
