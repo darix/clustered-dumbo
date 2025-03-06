@@ -1,0 +1,8 @@
+#!/bin/bash
+
+IN_RECOVERY="$(echo 'select pg_is_in_recovery();' | psql -t | tr -d ' ')"
+
+if [ "x${IN_RECOVERY}" = "xf" ] ; then
+  exit 0
+fi
+exit 1

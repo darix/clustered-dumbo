@@ -171,7 +171,7 @@ pgbackrest_config:
       postgresql_port: {{ postgresql_port }}
       minio_url: {{ minio_url }}
 
-pgbackrest_init_helper:
+patroni_setup_helpers:
   file.managed:
     - user: root
     - group: root
@@ -181,6 +181,8 @@ pgbackrest_init_helper:
     - names:
       - /usr/bin/pgbackrest-init:
         - source: salt://{{ slspath }}/files/usr/bin/pgbackrest-init
+      - /usr/bin/postgresql-is-primary:
+        - source: salt://{{ slspath }}/files/usr/bin/postgresql-is-primary
 
 {%- if 'initialize_cluster' in pillar_patroni and pillar_patroni.initialize_cluster %}  # noqa: 204
   {%- for stanza_name, stanza_data in pillar_pgbackrest.config.stanzas.items() %}
@@ -192,6 +194,6 @@ pgbackrest_create_stanza_{{ stanza_name }}:
     - creates: {{ pillar_postgresql.data_directory }}/pgbackrest-stanza-created-{{ stanza_name }}
     - require:
       - patroni_service
-      - pgbackrest_init_helper
+      - patroni_setup_helpers
   {%- endfor %}
 {%- endif %}
