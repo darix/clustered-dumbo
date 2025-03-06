@@ -26,6 +26,7 @@
 postgresql_packages:
   pkg.installed:
     - names:
+      - postgresql{{ pillar_postgresql.version }}
       - postgresql{{ pillar_postgresql.version }}-server
       - postgresql{{ pillar_postgresql.version }}-contrib
       {%- if grains.osfullname in ['openSUSE Tumbleweed', 'Leap'] %}
