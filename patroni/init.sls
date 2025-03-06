@@ -153,6 +153,7 @@ patroni_service:
     - require:
       - patroni_config
       - pgbackrest_config
+      - patroni_setup_helpers
 
 pgbackrest_config:
   file.managed:
@@ -176,8 +177,6 @@ patroni_setup_helpers:
     - user: root
     - group: root
     - mode: '0755'
-    - require:
-      - pgbackrest_config
     - names:
       - /usr/bin/pgbackrest-init:
         - source: salt://{{ slspath }}/files/usr/bin/pgbackrest-init
@@ -194,6 +193,5 @@ pgbackrest_create_stanza_{{ stanza_name }}:
     - creates: {{ pillar_postgresql.data_directory }}/pgbackrest-stanza-created-{{ stanza_name }}
     - require:
       - patroni_service
-      - patroni_setup_helpers
   {%- endfor %}
 {%- endif %}
