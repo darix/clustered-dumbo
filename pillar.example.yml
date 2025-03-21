@@ -24,6 +24,16 @@ includes:
 {%- set secret_key     = "patroni-minio/" ~ minio_user ~ "/secret_key" %}
 {%- set encryption_key = "patroni-minio/" ~ minio_user ~ "/encryption_key" %}
 
+## those salt mine functions are used throughout the formula.
+#  e.g if you want to have your cluster only listen on certain internal IPs you need to provide a salt mine function for that.
+#  suse-profile-base has some example function that can be used in https://github.com/darix/suse-base-profile/blob/stable/salt/_modules/filter_interfaces.py
+#  to filter ips from certain interfaces
+mine_functions:
+  cluster_internal_ips:
+    mine_function: network.ip_addrs
+    interface: cluster_internal
+    cidr: 192.168.42.0/24
+
 etcd:
   bootstrap: false
   cluster_name: {{ pgbackrest_stanza }}
@@ -34,7 +44,7 @@ patroni:
   # if you want to set up a new cluster fully from scratch
   initialize_cluster: false
   cluster_role: {{ cluster_role }}
-  cluster_mine_function: 'ipaddr'
+  cluster_mine_function: 'cluster_internal_ips'
   config:
     scope: {{ pgbackrest_stanza }}
     namespace: {{ patroni_namespace }}
