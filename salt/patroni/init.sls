@@ -5,11 +5,11 @@
 {%- set pillar_patroni    = salt['patroni_helpers.pillar_patroni'](default_settings=default_settings) %}
 {%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd'](default_settings=default_settings) %}
 
-{%- set own_cluster_ip_address  = salt['mine.get'](grains.id,                    'mgmt_ip_addrs')[grains.id][0]        %}
-{%- set cluster_ip_addresses    = salt['mine.get'](pillar_patroni.cluster_role,  'mgmt_ip_addrs', tgt_type='compound') %}
-{%- set cluster_hostnames       = salt['mine.get'](pillar_patroni.cluster_role,  'host',          tgt_type='compound') %}
-{%- set cluster_fqdns           = salt['mine.get'](pillar_patroni.cluster_role,  'fqdn',          tgt_type='compound') %}
-{%- set minio_host              = salt['mine.get'](pillar_pgbackrest.minio_role, 'fqdn',          tgt_type='compound') %}
+{%- set own_cluster_ip_address  = salt['mine.get'](grains.id,                    pillar_patroni.cluster_mine_function)[grains.id][0]        %}
+{%- set cluster_ip_addresses    = salt['mine.get'](pillar_patroni.cluster_role,  pillar_patroni.cluster_mine_function, tgt_type='compound') %}
+{%- set cluster_hostnames       = salt['mine.get'](pillar_patroni.cluster_role,  'host',                               tgt_type='compound') %}
+{%- set cluster_fqdns           = salt['mine.get'](pillar_patroni.cluster_role,  'fqdn',                               tgt_type='compound') %}
+{%- set minio_host              = salt['mine.get'](pillar_pgbackrest.minio_role, 'fqdn',                               tgt_type='compound') %}
 
 {%- set etcd_protocol       = 'https' %}
 {%- set etcd_client_port    = 2379 %}
@@ -71,11 +71,12 @@ sysconfig_etcd:
         - source: salt://{{ slspath }}/files/etc/default/etcd.j2
     - context:
       pillar_etcd: {{ pillar_etcd }}
-      patroni_cluster_role: {{ pillar_patroni.cluster_role }}
-      own_ip:              {{ own_cluster_ip_address }}
-      etcd_protocol:       {{ etcd_protocol }}
-      etcd_client_port:    {{ etcd_client_port }}
-      etcd_peer_port:      {{ etcd_peer_port }}
+      patroni_cluster_role:          {{ pillar_patroni.cluster_role }}
+      patroni_cluster_mine_function: {{ pillar_patroni.cluster_mine_function }}
+      own_ip:                        {{ own_cluster_ip_address }}
+      etcd_protocol:                 {{ etcd_protocol }}
+      etcd_client_port:              {{ etcd_client_port }}
+      etcd_peer_port:                {{ etcd_peer_port }}
 
 etcd_service:
   service.running:
