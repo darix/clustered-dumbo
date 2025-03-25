@@ -17,5 +17,6 @@ pillar_roots:
     - {{ salt_base_dir }}/pillar/
     - {{ formulas_base_dir }}/opensuse-patroni/pillar/
 ## License
+```
 
 [AGPL-3.0-only](https://spdx.org/licenses/AGPL-3.0-only.html)
