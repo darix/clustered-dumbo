@@ -200,9 +200,14 @@ pgbackrest_create_stanza_{{ stanza_name }}:
 {%- endif %}
 
 {%- for enabled_timer in salt['patroni_helpers.expand_pgbackrest_timers'](pillar_pgbackrest.timers_enabled): %}
+{%- set service_name = "pgbackrest-" ~ enabled_timer ~ "@" ~ stanza_name ~ ".timer" %}
 pgbackrest_enable_timer_{{ enabled_timer }}_{{ stanza_name }}:
   service.running:
-    - name: pgbackrest-{{ enabled_timer }}@{{ stanza_name }}.timer
+    - name: {{ service_name }}
     - require:
       - pgbackrest_create_stanza_{{ stanza_name }}
+      {%- if salt['patroni_helpers.has_systemd_override'](service_name) %}
+      - systemd_override_pgbackrest-{{ enabled_timer }}@{{ stanza_name }}_timer
+      - systemd_daemon_reload
+      {%- endif %}
 {%- endfor %}

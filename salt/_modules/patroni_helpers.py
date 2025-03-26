@@ -190,3 +190,6 @@ def expand_pgbackrest_timers(input_settings=[]):
     if "all" in input_settings:
         return all_timers
     return [e for e in input_settings if e in all_timers]
+
+def has_systemd_override(service_name):
+    return "systemd" in __pillar__ and "overrides" in __pillar__["systemd"] and service_name in __pillar__["systemd"]["overrides"]
