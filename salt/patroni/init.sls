@@ -212,7 +212,7 @@ pgbackrest_enable_timer_{{ enabled_timer }}_{{ stanza_name }}:
       - test -e  {{ pillar_postgresql.data_directory }}/pgbackrest-stanza-created-{{ stanza_name }}
     - require:
       {%- if salt['patroni_helpers.has_systemd_override'](service_name) %}
-      - systemd_override_pgbackrest{{ enabled_timer }}@_service
+      - systemd_override_pgbackrest-{{ enabled_timer }}@_service
       - systemd_daemon_reload
       {%- endif %}
       {%- if salt['patroni_helpers.has_systemd_override'](timer_name) %}
