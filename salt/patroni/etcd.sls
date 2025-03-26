@@ -20,7 +20,7 @@
 {%- import_yaml './defaults.sls' as default_settings %}
 
 {%- set pillar_etcd            = salt['patroni_helpers.pillar_etcd'](default_settings=default_settings) %}
-{%- set own_cluster_ip_address = salt['mine.get'](grains.id,                    pillar_etcd.cluster_mine_function)[grains.id][0] %}
+{%- set own_cluster_ip_address = salt['mine.get'](grains.id, pillar_etcd.etcd_cluster_mine_function)[grains.id][0] %}
 
 {%- set etcd_protocol       = 'https' %}
 {%- set etcd_client_port    = 2379 %}
@@ -48,8 +48,8 @@ sysconfig_etcd:
         - source: salt://{{ slspath }}/files/etc/default/etcd.j2
     - context:
       pillar_etcd:                {{ pillar_etcd }}
-      etcd_cluster_role:          {{ pillar_etcd.cluster_role }}
-      etcd_cluster_mine_function: {{ pillar_etcd.cluster_mine_function }}
+      etcd_cluster_role:          {{ pillar_etcd.etcd_cluster_role }}
+      etcd_cluster_mine_function: {{ pillar_etcd.etcd_cluster_mine_function }}
       own_ip:                     {{ own_cluster_ip_address }}
       etcd_protocol:              {{ etcd_protocol }}
       etcd_client_port:           {{ etcd_client_port }}

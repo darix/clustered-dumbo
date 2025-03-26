@@ -22,12 +22,12 @@
 {%- set pillar_postgresql = salt['patroni_helpers.pillar_postgresql'](default_settings=default_settings) %}
 {%- set pillar_pgbackrest = salt['patroni_helpers.pillar_pgbackrest'](default_settings=default_settings) %}
 {%- set pillar_patroni    = salt['patroni_helpers.pillar_patroni'](default_settings=default_settings) %}
+{%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd'](default_settings=default_settings) %}
 
-{%- set own_cluster_ip_address  = salt['mine.get'](grains.id,                    pillar_patroni.cluster_mine_function)[grains.id][0]        %}
-{%- set cluster_ip_addresses    = salt['mine.get'](pillar_patroni.cluster_role,  pillar_patroni.cluster_mine_function, tgt_type='compound') %}
-{%- set cluster_hostnames       = salt['mine.get'](pillar_patroni.cluster_role,  'host',                               tgt_type='compound') %}
-{%- set cluster_fqdns           = salt['mine.get'](pillar_patroni.cluster_role,  'fqdn',                               tgt_type='compound') %}
-{%- set minio_host              = salt['mine.get'](pillar_pgbackrest.minio_role, 'fqdn',                               tgt_type='compound') %}
+{%- set own_cluster_ip_address = salt['mine.get'](grains.id, pillar_patroni.cluster_mine_function)[grains.id][0]        %}
+{%- set patroni_cluster_hosts  = salt['mine.get'](pillar_patroni.patroni_cluster_role, pillar_patroni.patroni_cluster_mine_function, tgt_type='compound') %}
+{%- set patroni_etcd_hosts     = salt['mine.get'](pillar_etcd.etcd_cluster_role,    pillar_etcd.etcd_cluster_mine_function, tgt_type='compound')          %}
+{%- set pgbackrest_minio_hosts = salt['mine.get'](pillar_pgbackrest.minio_role, pillar_pgbackrest.minio_cluster_mine_function, tgt_type='compound')       %}
 
 {%- set minio_url = pillar.pgbackrest.get('minio_url', 'https://' ~ grains.id ~ ':9000/') %}
 {%- set postgresql_port = 5432 %}

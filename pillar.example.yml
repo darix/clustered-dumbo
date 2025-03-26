@@ -61,17 +61,17 @@ mine_functions:
 
 etcd:
   bootstrap: false
-  cluster_name:          {{ pgbackrest_stanza }}
-  cluster_role:          {{ etcd_cluster_role }}
-  cluster_mine_function: {{ cluster_mine_function }}
+  etcd_cluster_name:          {{ pgbackrest_stanza }}
+  etcd_cluster_role:          {{ etcd_cluster_role }}
+  etcd_cluster_mine_function: {{ cluster_mine_function }}
 
 patroni:
   # start a new node - unless initialize_cluster is also true it requires existing hosts/a backup to pull from
   bootstrap: false
   # if you want to set up a new cluster fully from scratch
   initialize_cluster: false
-  cluster_role: {{ patroni_cluster_role }}
-  cluster_mine_function: {{ cluster_mine_function }}
+  patroni_cluster_role:          {{ patroni_cluster_role }}
+  patroni_cluster_mine_function: {{ cluster_mine_function }}
   config:
     scope: {{ pgbackrest_stanza }}
     namespace: {{ patroni_namespace }}
