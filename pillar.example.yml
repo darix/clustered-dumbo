@@ -1,4 +1,7 @@
 includes:
+  # required overrides so that the backups are only running on the primary node
+  - includes.patroni-pgbackrest-overrides
+  # optionally we can deploy all certs via step-ca
   - includes.patroni-step-ca
   ## those salt mine functions are used throughout the formula.
   #  e.g if you want to have your cluster only listen on certain internal IPs you need to provide a salt mine function for that.
