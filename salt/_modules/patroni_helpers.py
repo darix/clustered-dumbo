@@ -1,3 +1,4 @@
+#!py
 #
 # clustered-dumbo
 #
@@ -17,7 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#!py
 '''
 Helpers for our patroni cluster
 ===============================
