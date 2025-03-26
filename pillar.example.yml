@@ -28,8 +28,11 @@ includes:
   #  to filter ips from certain interfaces
   - includes.patroni-mine-config
 
-{%- set cluster_role            = 'I@role:patroni' %}
-{%- set minio_role              = 'I@role:minio'   %}
+{%- set patroni_cluster_role            = 'I@role:patroni' %}
+{%- set minio_cluster_role              = 'I@role:minio'   %}
+{%- set etcd_cluster_role               = 'I@role:etcd'    %}
+
+{%- set cluster_mine_function           = 'cluster_internal_ips' %}
 
 # patroni
 {%- set patroni_scope     = "cluster1" %}
@@ -58,15 +61,17 @@ mine_functions:
 
 etcd:
   bootstrap: false
-  cluster_name: {{ pgbackrest_stanza }}
+  cluster_name:          {{ pgbackrest_stanza }}
+  cluster_role:          {{ etcd_cluster_role }}
+  cluster_mine_function: {{ cluster_mine_function }}
 
 patroni:
   # start a new node - unless initialize_cluster is also true it requires existing hosts/a backup to pull from
   bootstrap: false
   # if you want to set up a new cluster fully from scratch
   initialize_cluster: false
-  cluster_role: {{ cluster_role }}
-  cluster_mine_function: 'cluster_internal_ips'
+  cluster_role: {{ patroni_cluster_role }}
+  cluster_mine_function: {{ cluster_mine_function }}
   config:
     scope: {{ pgbackrest_stanza }}
     namespace: {{ patroni_namespace }}
@@ -82,7 +87,8 @@ pgbackrest:
     # - diff
     # - full
     # - incr
-  minio_role: {{ minio_role }}
+  minio_cluster_role: {{ minio_cluster_role }}
+  minio_cluster_mine_function: {{ cluster_mine_function }}
   stanza: {{ pgbackrest_stanza }}
   config:
     global:
