@@ -53,6 +53,13 @@ patroni:
       password: {{ "patroni-admin" | gopass }}
 
 pgbackrest:
+  timers_enabled:
+    # default is:
+    - all
+    # if you do not want all you can also specify each timer separately
+    # - diff
+    # - full
+    # - incr
   minio_role: {{ minio_role }}
   stanza: {{ pgbackrest_stanza }}
   config:
@@ -77,3 +84,27 @@ postgresql:
       password: {{ "patroni/superuser" | gopass }}
     rewind:
       password: {{ "patroni/rewind" | gopass }}
+
+##
+## this requires the profile-base.systemd-overrides from the suse-profile-base formula
+##
+#
+# The following services are supported by the pgbackrest package
+#
+# pgbackrest-diff@.timer
+# pgbackrest-full@.timer
+# pgbackrest-incr@.timer
+#
+# First we check what current scheduling the current timer unit uses
+# and then we reset the current timer setting and then define our new settings
+#
+# For all scheduling settings see man systemd.timer
+#
+# systemd:
+#   overrides:
+#     pgbackrest-diff@{{ pgbackrest_stanza }}:
+#       Timer:
+#         # this resets the hardcoded timer setting
+#         - OnCalendar=
+#         - OnCalendar=Tue *-*-* 05:05:05
+#

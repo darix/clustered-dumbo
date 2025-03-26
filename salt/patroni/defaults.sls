@@ -31,6 +31,8 @@ patroni:
     use_synchronous_commit: {{ postgresql_use_synchronous_commit }}
 
 pgbackrest:
+  timers_enabled:
+    - all
   ca_cert:       {{ ca_certs_filename }}
   config:
     global:

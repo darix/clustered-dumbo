@@ -198,3 +198,11 @@ pgbackrest_create_stanza_{{ stanza_name }}:
       - patroni_service
   {%- endfor %}
 {%- endif %}
+
+{%- for enabled_timer in salt['patroni_helpers.expand_pgbackrest_timers'](pillar_pgbackrest.timers_enabled): %}
+pgbackrest_enable_timer_{{ enabled_timer }}_{{ stanza_name }}:
+  service.running:
+    - name: pgbackrest-{{ enabled_timer }}@{{ stanza_name }}.timer
+    - require:
+      - pgbackrest_create_stanza_{{ stanza_name }}
+{%- endfor %}

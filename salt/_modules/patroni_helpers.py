@@ -182,3 +182,11 @@ def password_encryption():
     if 'postgresql' in __pillar__ and 'parameters' in __pillar__['postgresql'] and 'password_encryption' in __pillar__['postgresql']['parameters']:
         ret = __pillar__['postgresql']['parameters']['password_encryption']
     return ret
+
+def expand_pgbackrest_timers(input_settings=[]):
+    if len(input_settings) == 0:
+        return []
+    all_timers = ["full", "diff", "incr"]
+    if "all" in input_settings:
+        return all_timers
+    return [e for e in input_settings if e in all_timers]
