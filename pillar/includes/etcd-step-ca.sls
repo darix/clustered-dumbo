@@ -34,12 +34,11 @@ step:
             {%- endfor %}
           {%- endif %}
         affected_services:
-         - patroni.service
+         - etcd.service
         acls_for_combined_file:
           - acl_type: user
             acl_names:
-            - nagios
-            - postgres
+            - etcd
     user:
       generic:
         cn: {{ grains.id }}
@@ -55,34 +54,8 @@ step:
             {%- endfor %}
           {%- endif %}
         affected_services:
-         - patroni.service
+         - etcd.service
         acls_for_combined_file:
           - acl_type: user
             acl_names:
-            - nagios
-            - postgres
-{%- for pg_user in ['postgres', 'replicator', 'rewind_user', 'patroni'] %}
-      'pg.{{ pg_user }}':
-        cn: {{ pg_user }}
-        san:
-          - {{ grains.host }}
-          - {{ grains.id }}
-          {%- for hostname in grains.fqdns|sort %}
-          - {{ hostname }}
-          {%- endfor %}
-          {%- if "global_addresses" in grains %}
-            {%- for ip in grains.global_addresses|sort %}
-          - {{ ip }}
-            {%- endfor %}
-          {%- endif %}
-        acls_for_combined_file:
-          - acl_type: user
-            acl_names:
-            - postgres
-        affected_services:
-         - patroni.service
-{%- endfor %}
-
-patroni:
-  ssl_prefix:   '/etc/step/certs/pg.'
-  ssl_suffix:   '.user.full.pem'
+            - etcd
