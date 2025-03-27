@@ -36,6 +36,9 @@
 
 
 etcd:
+  client_port:   2379
+  peer_port:     2380
+  protocol:      https
   server_cert:   {{ server_cert_filename }}
   client_cert:   {{ client_cert_filename }}
   ca_cert:       {{ ca_certs_filename }}
@@ -138,5 +141,5 @@ postgresql:
     rewind_user:
       databases: postgres
       user: rewind_user
-      mine_target:    {{ pillar.patroni.cluster_role }}
-      mine_functions: {{ pillar.patroni.cluster_mine_function }}
+      mine_target:    {{ pillar.patroni.patroni_cluster_role }}
+      mine_functions: {{ pillar.patroni.patroni_cluster_mine_function }}

@@ -24,10 +24,10 @@
 {%- set pillar_patroni    = salt['patroni_helpers.pillar_patroni'](default_settings=default_settings) %}
 {%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd'](default_settings=default_settings) %}
 
-{%- set own_cluster_ip_address = salt['mine.get'](grains.id, pillar_patroni.cluster_mine_function)[grains.id][0]        %}
+{%- set own_cluster_ip_address = salt['mine.get'](grains.id, pillar_patroni.patroni_cluster_mine_function)[grains.id][0]        %}
 {%- set patroni_cluster_hosts  = salt['mine.get'](pillar_patroni.patroni_cluster_role, pillar_patroni.patroni_cluster_mine_function, tgt_type='compound') %}
 {%- set patroni_etcd_hosts     = salt['mine.get'](pillar_etcd.etcd_cluster_role,    pillar_etcd.etcd_cluster_mine_function, tgt_type='compound')          %}
-{%- set pgbackrest_minio_hosts = salt['mine.get'](pillar_pgbackrest.minio_role, pillar_pgbackrest.minio_cluster_mine_function, tgt_type='compound')       %}
+{%- set pgbackrest_minio_hosts = salt['mine.get'](pillar_pgbackrest.minio_cluster_role, pillar_pgbackrest.minio_cluster_mine_function, tgt_type='compound')       %}
 
 {%- set minio_url = pillar.pgbackrest.get('minio_url', 'https://' ~ grains.id ~ ':9000/') %}
 {%- set postgresql_port = 5432 %}
@@ -105,7 +105,7 @@ patroni_config:
       # TODO: this code needs error handling it happily sets None as value
       etcd_hosts:
         {%- for minion_id, fqdn in patroni_etcd_hosts.items() %}
-        - {{ fqdn }}:{{ etcd_client_port }}
+        - {{ fqdn }}:{{ pillar_etcd.client_port }}
         {%- endfor %}
       pg_hba:
         # rules from the pillar

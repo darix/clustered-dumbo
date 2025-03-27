@@ -1,10 +1,12 @@
-{%- set etcd_cluster_urls        =  salt['patroni_helpers.mine_etcd_cluster_url'](etcd_cluster_role, etcd_cluster_mine_function) %}
+{%- set own_ip                   = salt['mine.get'](grains.id, pillar_etcd.etcd_cluster_mine_function)[grains.id][0] %}
 
-{%- set etcd_own_host_client_url = etcd_protocol ~ '://' ~ grains.id ~ ':' ~ etcd_client_port %}
-{%- set etcd_own_ip_client_url   = etcd_protocol ~ '://' ~ own_ip ~ ':' ~ etcd_client_port %}
+{%- set etcd_cluster_urls        =  salt['patroni_helpers.mine_etcd_cluster_url'](pillar_etcd.etcd_cluster_role, pillar_etcd.etcd_cluster_mine_function) %}
 
-{%- set etcd_own_host_peer_url   = etcd_protocol ~ '://' ~ grains.id ~ ':' ~ etcd_peer_port   %}
-{%- set etcd_own_ip_peer_url     = etcd_protocol ~ '://' ~ own_ip ~ ':' ~ etcd_peer_port   %}
+{%- set etcd_own_host_client_url = pillar_etcd.protocol ~ '://' ~ grains.id ~ ':' ~ pillar_etcd.client_port %}
+{%- set etcd_own_ip_client_url   = pillar_etcd.protocol ~ '://' ~ own_ip ~ ':' ~ pillar_etcd.client_port %}
+
+{%- set etcd_own_host_peer_url   = pillar_etcd.protocol ~ '://' ~ grains.id ~ ':' ~ pillar_etcd.peer_port   %}
+{%- set etcd_own_ip_peer_url     = pillar_etcd.protocol ~ '://' ~ own_ip ~ ':' ~ pillar_etcd.peer_port   %}
 
 {%- set cacert = salt['patroni_helpers.cacert']('etcd') %}
 
@@ -30,7 +32,7 @@ ETCD_DATA_DIR="{{ etcd_data_dir }}"
 # make sure to enable authentication in the [security] section below. Please
 # also read README.security for this package
 ETCD_LISTEN_PEER_URLS="{{ etcd_own_ip_peer_url }}"
-ETCD_LISTEN_CLIENT_URLS="{{ etcd_own_ip_client_url }},{{ etcd_protocol }}://localhost:{{ etcd_client_port }}"
+ETCD_LISTEN_CLIENT_URLS="{{ etcd_own_ip_client_url }},{{ pillar_etcd.protocol }}://localhost:{{ pillar_etcd.client_port }}"
 #ETCD_MAX_SNAPSHOTS="5"
 #ETCD_MAX_WALS="5"
 #ETCD_CORS=""
