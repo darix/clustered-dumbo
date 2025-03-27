@@ -104,7 +104,7 @@ patroni_config:
       own_cluster_ip_address: {{ own_cluster_ip_address }}
       # TODO: this code needs error handling it happily sets None as value
       etcd_hosts:
-        {%- for minion_id, fqdn in cluster_fqdns.items() %}
+        {%- for minion_id, fqdn in patroni_etcd_hosts.items() %}
         - {{ fqdn }}:{{ etcd_client_port }}
         {%- endfor %}
       pg_hba:
@@ -118,7 +118,8 @@ patroni_config:
         {%- endfor %}
         {%- if 'use_synchronous_commit' in pillar_patroni and pillar_patroni.use_synchronous_commit %}
         synchronous_commit: 'on'
-        synchronous_standby_names: '{{ cluster_fqdns | join(', ') }}'
+        # TODO: this will probably need something like `| keys`
+        synchronous_standby_names: '{{ patroni_cluster_hosts | join(', ') }}'
         {%- endif %}
 
 patroni_service:
