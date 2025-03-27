@@ -125,8 +125,8 @@ def rules(pillar_postgresql):
         for identifier, config_data in pg_pillar['pg_hba'].items():
             rules += pg_hba_rules(pillar_postgresql, config_data, 'client')
 
-    patroni_cluster_role = pillar_patroni()['cluster_role']
-    patroni_cluster_function = pillar_patroni()['cluster_mine_function']
+    patroni_cluster_role = pillar_patroni()['patroni_cluster_role']
+    patroni_cluster_function = pillar_patroni()['patroni_cluster_mine_function']
     rules += pg_hba_rules(pillar_postgresql, {'mine_target': patroni_cluster_role,  'mine_functions': patroni_cluster_function}, 'replication')
 
     if 'pg_hba_defaults' in pg_pillar:
