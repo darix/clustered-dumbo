@@ -37,12 +37,12 @@ sysconfig_etcd:
     - group: root
     - template: jinja
     - require:
-      - patroni_cluster_packages
+      - etcd_cluster_packages
     - names:
       - /etc/default/etcd:
         - source: salt://{{ slspath }}/files/etc/default/etcd.j2
     - context:
-      pillar_etcd:                {{ pillar_etcd }}
+      pillar_etcd: {{ pillar_etcd }}
 
 etcd_service:
   service.running:
