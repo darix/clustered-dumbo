@@ -18,11 +18,13 @@
 #
 
 {%- import_yaml './defaults.sls' as default_settings %}
+{%- import_yaml './etcd.defaults.sls' as etcd_default_settings %}
+
 
 {%- set pillar_postgresql = salt['patroni_helpers.pillar_postgresql'](default_settings=default_settings) %}
 {%- set pillar_pgbackrest = salt['patroni_helpers.pillar_pgbackrest'](default_settings=default_settings) %}
 {%- set pillar_patroni    = salt['patroni_helpers.pillar_patroni'](default_settings=default_settings) %}
-{%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd'](default_settings=default_settings) %}
+{%- set pillar_etcd       = salt['patroni_helpers.pillar_etcd'](default_settings=etcd_default_settings) %}
 
 {%- set own_cluster_ip_address = salt['mine.get'](grains.id, pillar_patroni.patroni_cluster_mine_function)[grains.id][0]        %}
 

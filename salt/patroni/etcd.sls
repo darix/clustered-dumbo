@@ -17,9 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{%- import_yaml './defaults.sls' as default_settings %}
+{%- import_yaml './etcd.defaults.sls' as etcd_default_settings %}
 
-{%- set pillar_etcd            = salt['patroni_helpers.pillar_etcd'](default_settings=default_settings) %}
+{%- set pillar_etcd            = salt['patroni_helpers.pillar_etcd'](default_settings=etcd_default_settings) %}
 
 
 etcd_cluster_packages:
