@@ -13,7 +13,7 @@
 {%- set etcd_data_dir = '/var/lib/etcd/patroni.etcd' %}
 {%- set etcd_initial_cluster_token = 'patroni' %}
 
-{%- if pillar.patroni.bootstrap %}
+{%- if pillar.etcd.bootstrap %}
 {%- set etcd_initial_cluster_state = 'new' %}
 {%- else %}
 {%- set etcd_initial_cluster_state = 'existing' %}
