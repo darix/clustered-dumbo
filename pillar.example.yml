@@ -32,7 +32,8 @@ includes:
 {%- set minio_cluster_role              = 'I@role:minio'   %}
 {%- set etcd_cluster_role               = 'I@role:etcd'    %}
 
-{%- set cluster_mine_function           = 'cluster_internal_ips' %}
+{%- set cluster_address_mine_function           = 'cluster_internal_ips' %}
+{%- set cluster_host_mine_function              = 'fqdn' %}
 
 # patroni
 {%- set patroni_scope     = "cluster1" %}
@@ -63,7 +64,8 @@ etcd:
   bootstrap: false
   etcd_cluster_name:          {{ pgbackrest_stanza }}
   etcd_cluster_role:          {{ etcd_cluster_role }}
-  etcd_cluster_mine_function: {{ cluster_mine_function }}
+  etcd_address_mine_function: {{ cluster_address_mine_function }}
+  ectd_host_mine_function:    {{ cluster_host_mine_function }}
 
 patroni:
   # start a new node - unless initialize_cluster is also true it requires existing hosts/a backup to pull from
@@ -71,7 +73,7 @@ patroni:
   # if you want to set up a new cluster fully from scratch
   initialize_cluster: false
   patroni_cluster_role:          {{ patroni_cluster_role }}
-  patroni_cluster_mine_function: {{ cluster_mine_function }}
+  patroni_cluster_address_mine_function: {{ cluster_address_mine_function }}
   config:
     scope: {{ pgbackrest_stanza }}
     namespace: {{ patroni_namespace }}
@@ -88,7 +90,7 @@ pgbackrest:
     # - full
     # - incr
   minio_cluster_role: {{ minio_cluster_role }}
-  minio_cluster_mine_function: {{ cluster_mine_function }}
+  minio_cluster_address_mine_function: {{ cluster_address_mine_function }}
   stanza: {{ pgbackrest_stanza }}
   config:
     global:

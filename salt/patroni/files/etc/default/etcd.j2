@@ -1,6 +1,6 @@
 {%- set own_ip                   = salt['mine.get'](grains.id, pillar_etcd.etcd_cluster_mine_function)[grains.id][0] %}
 
-{%- set etcd_cluster_urls        =  salt['patroni_helpers.mine_etcd_cluster_url'](pillar_etcd.etcd_cluster_role, pillar_etcd.etcd_cluster_mine_function) %}
+{%- set etcd_cluster_urls        =  salt['patroni_helpers.mine_etcd_cluster_url'](pillar_etcd.etcd_cluster_role, pillar_etcd.etcd_address_mine_function) %}
 
 {%- set etcd_own_host_client_url = pillar_etcd.protocol ~ '://' ~ grains.id ~ ':' ~ pillar_etcd.client_port %}
 {%- set etcd_own_ip_client_url   = pillar_etcd.protocol ~ '://' ~ own_ip ~ ':' ~ pillar_etcd.client_port %}
