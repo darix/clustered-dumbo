@@ -132,7 +132,7 @@ postgresql:
 #
 # systemd:
 #   overrides:
-#     pgbackrest-diff@{{ pgbackrest_stanza }}:
+#     pgbackrest-diff@{{ pgbackrest_stanza }}.service:
 #       Timer:
 #         # this resets the hardcoded timer setting
 #         - OnCalendar=
