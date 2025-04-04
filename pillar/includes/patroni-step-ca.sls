@@ -38,7 +38,6 @@ step:
         acls_for_combined_file:
           - acl_type: user
             acl_names:
-            - nagios
             - postgres
     user:
       generic:
@@ -59,7 +58,6 @@ step:
         acls_for_combined_file:
           - acl_type: user
             acl_names:
-            - nagios
             - postgres
 {%- for pg_user in ['postgres', 'replicator', 'rewind_user', 'patroni'] %}
       'pg.{{ pg_user }}':
