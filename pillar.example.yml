@@ -65,7 +65,7 @@ etcd:
   etcd_cluster_name:          {{ pgbackrest_stanza }}
   etcd_cluster_role:          {{ etcd_cluster_role }}
   etcd_address_mine_function: {{ cluster_address_mine_function }}
-  ectd_host_mine_function:    {{ cluster_host_mine_function }}
+  etcd_host_mine_function:    {{ cluster_host_mine_function }}
 
 patroni:
   # start a new node - unless initialize_cluster is also true it requires existing hosts/a backup to pull from
