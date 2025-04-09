@@ -30,9 +30,8 @@
 
 {%- set patroni_cluster_hosts  = salt['mine.get'](pillar_patroni.patroni_cluster_role,  pillar_patroni.patroni_cluster_mine_function,  tgt_type='compound') %}
 {%- set patroni_etcd_hosts     = salt['mine.get'](pillar_etcd.etcd_cluster_role,        pillar_etcd.etcd_host_mine_function,           tgt_type='compound') %}
-{%- set pgbackrest_minio_hosts = salt['mine.get'](pillar_pgbackrest.minio_cluster_role, pillar_pgbackrest.minio_cluster_mine_function, tgt_type='compound') %}
 
-{%- set minio_url = pillar.pgbackrest.get('minio_url', 'https://' ~ grains.id ~ ':9000/') %}
+{%- set minio_url = salt['patroni_helpers.minio_url()'] %}
 {%- set postgresql_port = 5432 %}
 {%- if 'port' in pillar_postgresql.parameters %}
 {%- set postgresql_port = pillar_postgresql.parameters.port %}
