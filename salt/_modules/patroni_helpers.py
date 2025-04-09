@@ -212,3 +212,20 @@ def expand_pgbackrest_timers(input_settings=[]):
 
 def has_systemd_override(service_name):
     return "systemd" in __pillar__ and "overrides" in __pillar__["systemd"] and service_name in __pillar__["systemd"]["overrides"]
+
+def minio_url():
+    if "minio_url" in pillar_pgbackrest():
+        return pillar_pgbackrest()["minio_url"]
+
+    ret = __grains__['id']
+
+    if "minio_cluster_role" in pillar_pgbackrest() and "minio_cluster_mine_function" in pillar_pgbackrest()
+        minio_cluster_role     = pillar_pgbackrest()["minio_cluster_role"]
+        minio_cluster_function = pillar_pgbackrest()["minio_cluster_mine_function"]
+        mined_data             = __mine__.get(minio_cluster_role, minio_cluster_function, tgt_type='compound')
+
+        for minion_id, minio_host in mine_data.items()
+            ret = minio_host
+            break
+
+    return f"https://{ret}:9000"
