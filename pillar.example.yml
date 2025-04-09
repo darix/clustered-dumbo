@@ -50,6 +50,25 @@ includes:
 {%- set secret_key     = "patroni-minio/" ~ minio_user ~ "/secret_key" %}
 {%- set encryption_key = "patroni-minio/" ~ minio_user ~ "/encryption_key" %}
 
+##
+## As this formula wants to use client certificates for everything as an additional layer of security,
+## a lot of places assume that the step-ca formula is used.
+##
+## https://github.com/darix/step-ca-formula
+##
+## This also is reflected in some paths and pillar entries referenced by default
+## if you don't use the step-ca formula to deploy any of the certs, please provide
+## at least a pillar block like below. Do NOT use /etc/ssl/ca-bundle.pem
+##
+## If you use /etc/ssl/ca-bundle.pem, (client) certificates signed by _any_ CA
+## can authenticate.
+##
+# step:
+#  client_config:
+#    ca:
+#       root_cert:
+#          path: /usr/share/pki/trust/anchors/your-ca-root.pem
+
 ## those salt mine functions are used throughout the formula.
 #  e.g if you want to have your cluster only listen on certain internal IPs you need to provide a salt mine function for that.
 #  suse-profile-base has some example function that can be used in https://github.com/darix/suse-base-profile/blob/stable/salt/_modules/filter_interfaces.py
