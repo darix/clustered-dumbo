@@ -219,12 +219,12 @@ def minio_url():
 
     ret = __grains__['id']
 
-    if "minio_cluster_role" in pillar_pgbackrest() and "minio_cluster_mine_function" in pillar_pgbackrest()
+    if "minio_cluster_role" in pillar_pgbackrest() and "minio_cluster_mine_function" in pillar_pgbackrest():
         minio_cluster_role     = pillar_pgbackrest()["minio_cluster_role"]
         minio_cluster_function = pillar_pgbackrest()["minio_cluster_mine_function"]
         mined_data             = __mine__.get(minio_cluster_role, minio_cluster_function, tgt_type='compound')
 
-        for minion_id, minio_host in mine_data.items()
+        for minion_id, minio_host in mine_data.items():
             ret = minio_host
             break
 
