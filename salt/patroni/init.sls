@@ -197,3 +197,35 @@ pgbackrest_enable_timer_{{ enabled_timer }}_{{ stanza_name }}:
       - systemd_daemon_reload
       {%- endif %}
 {%- endfor %}
+
+{%- set server_items_key = "server_items" %}
+{%- set state_types = ["group", "user", "tablespace", "database", "schema", "language", "extension", "privileges" ] %}
+{%- for state_type in state_types %}
+  {%- if state_type in pillar_postgresql %}
+    {%- for state_name, blockdata in pillar_postgresql[server_items_key][state_type].items() %}
+patroni_{{ state_type }}_{{ username }}:
+  postgres_{{ state_type }}.present:
+    - name: {{ state_name }}
+    - onlyif: /usr/bin/postgresql-is-primary
+    - require:
+      - patroni_setup_helpers
+      - patroni_service
+      {%- for database_identifier in ["dbname", "maintenance_db"]%}
+        {%- if database_identifier in blockdata %}
+      - patroni_database_{{ blockdata[database_identifier] }}
+        {%- endif %}
+      {%- endfor %}
+      {%- if "owner" in blockdata %}
+      - patroni_user_{{ blockdata.owner }}
+      {%- endif %}
+      {%- for requirement_state_type in state_types %}
+        {%- if requirement_state_type in blockdata %}
+      - patroni_{{ requirement_state_type }}_{{ blockdata[requirement_state_type] }}
+        {%- endif %}
+      {%- endfor %}
+    {%- for key, value in blockdata.items() %}
+    - {{ key }}: {{ value }}
+    {%- endfor %}
+    {%- endfor %}
+  {%- endif %}
+{%- endfor %}
