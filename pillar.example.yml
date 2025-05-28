@@ -133,6 +133,14 @@ postgresql:
       password: {{ "patroni/superuser" | gopass }}
     rewind:
       password: {{ "patroni/rewind" | gopass }}
+  server_items:
+    user:
+      minio:
+        password: blubber
+        login: true
+    database:
+      minio:
+        owner: minio
 
 ##
 ## this requires the profile-base.systemd-overrides from the suse-profile-base formula
