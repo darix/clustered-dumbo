@@ -203,7 +203,7 @@ pgbackrest_enable_timer_{{ enabled_timer }}_{{ stanza_name }}:
 {%- for state_type in state_types %}
   {%- if state_type in pillar_postgresql %}
     {%- for state_name, blockdata in pillar_postgresql[server_items_key][state_type].items() %}
-patroni_{{ state_type }}_{{ username }}:
+patroni_{{ state_type }}_{{ state_name }}:
   postgres_{{ state_type }}.present:
     - name: {{ state_name }}
     - onlyif: /usr/bin/postgresql-is-primary
