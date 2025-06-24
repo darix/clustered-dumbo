@@ -26,6 +26,7 @@ Helpers for our patroni cluster
 
 import re
 import os.path
+import ipaddress
 from salt.modules.jinja import import_yaml
 
 cached_default_settings = None
@@ -182,6 +183,11 @@ def settings(pillar_postgresql, pgbackrest_stanza):
 
 
 def get_etcd_url(minion_id, hostname, protocol, port ):
+    try:
+        if ipaddress.ip_address(hostname).version == 6:
+            hostname = f"[{hostname}]" 
+    except ValueError:
+        pass
     return "{minion_id}={protocol}://{hostname}:{port}".format(minion_id=minion_id, protocol=protocol, hostname=hostname, port=port)
 
 
