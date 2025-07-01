@@ -128,6 +128,7 @@ patroni_service:
   service.running:
     - name: patroni.service
     - enable: true
+    - reload: true
     - watch:
       - patroni_config
     - require:
