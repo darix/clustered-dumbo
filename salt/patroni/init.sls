@@ -73,6 +73,15 @@ postgresql_instances_dir:
     - require:
       - postgresql_packages
 
+postgresql_data_directory:
+  file.directory:
+    - name: {{ postgresql_data_directory }}
+    - user: postgres
+    - group: postgres
+    - mode: '0700'
+    - require:
+      - file: postgresql_instances_dir
+
 {%- set sysconfig_setting = "POSTGRES_DATADIR" %}
 sysconfig_postgresql_datadir:
   file.replace:
