@@ -59,14 +59,12 @@ bootstrap:
     {% if 'is_standby' in pillar_patroni.config and pillar_patroni.config.is_standby %}
     standby_cluster:
       host: {{ pillar_patroni.config.standby_primary }}
-      port: 5432
-      restore_command: '/usr/bin/pgbackrest --stanza={{ pgbackrest_stanza }} archive-get %f "%p"'
+      port: {{ pillar_patroni.config.port | default(5432) }}
+      restore_command: {{ pillar_patroni.config.restore_command | default("/usr/bin/pgbackrest --stanza=" ~ pgbackrest_stanza ~ " archive-get %f \"%p\"") }}
       # this needs to be manually created
-      primary_slot_name: patroni_standby
+      primary_slot_name: {{ pillar_patroni.config.primary_slot_name | default('patroni_standby') }}
       # in theory we can use the same fallthrough as in the postgresql section below
-      create_replica_methods:
-      - pgbackrest
-      - basebackup
+      create_replica_methods: {{ pillar_patroni.config.create_replica_methods | default(['pgbackrest', 'basebackup']) }}
     {% endif %}
     postgresql:
       # https://www.postgresql.org/docs/14/app-pgrewind.html
