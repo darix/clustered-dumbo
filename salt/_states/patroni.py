@@ -7,13 +7,14 @@ def listify(string: str) -> List[str]:
 
 def postgresql_config_present(name):
   ret = {'name': name, 'result': None, 'changes': {}, 'comment': ""}
-  postgresql_parameters = __pillar__.get("postgresql:parameters", {})
 
-  if len(postgresql_parameters) == 0
+  patroni_config = patroni.ctl.load_config("/etc/patroni.yml", None)
+  postgresql_parameters = patroni_config.get("postgresql", {}).get("parameters", {})
+
+  if len(postgresql_parameters) == 0:
     ret["result"] = True
     ret["comment"] = "No configuration settings in pillar"
   elif len(postgresql_parameters) > 0:
-    patroni_config = patroni.ctl.load_config("/etc/patroni.yml", None)
     dcs = patroni.ctl._get_dcs(config)
     cluster = dcs.get_cluster()
 
