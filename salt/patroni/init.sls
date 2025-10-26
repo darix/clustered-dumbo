@@ -79,6 +79,7 @@ postgresql_data_directory:
     - user: postgres
     - group: postgres
     - mode: '0700'
+    - makedirs: true
     - require:
       - file: postgresql_instances_dir
 
