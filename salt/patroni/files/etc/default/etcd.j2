@@ -79,3 +79,6 @@ ETCD_PEER_TRUSTED_CA_FILE="{{ cacert }}"
 #ETCD_DEBUG="false"
 # examples for -log-package-levels etcdserver=WARNING,security=DEBUG
 #ETCD_LOG_PACKAGE_LEVELS=""
+ETCD_AUTO_COMPACTION_MODE="{{ pillar_etcd.get('auto_compaction_mode', 'revision') }}"
+ETCD_AUTO_COMPACTION_RETENTION="{{ pillar_etcd.get('auto_compaction_retention', 1000) }}"
+ETCD_QUOTA_BACKEND_BYTES="{{ pillar_etcd.get('quota_backend_bytes', 0) }}"
