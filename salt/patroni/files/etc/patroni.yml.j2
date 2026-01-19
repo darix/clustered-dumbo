@@ -110,9 +110,9 @@ bootstrap:
         - createdb
 
 postgresql:
-{%- if pillar_patroni.config.postgresql.slots %}
+{%- if pillar_postgresql.slots %}
   slots:
-{{ pillar_patroni.config.postgresql.slots | yaml(False) | indent(4, true) }}
+{{ pillar_postgresql.slots | yaml(False) | indent(4, true) }}
 {%- endif %}
   create_replica_methods:
     - pgbackrest
