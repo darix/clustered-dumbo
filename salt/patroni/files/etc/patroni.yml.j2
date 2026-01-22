@@ -112,7 +112,7 @@ bootstrap:
 postgresql:
 {%- if pillar_patroni.config.postgresql.slots %}
   slots:
-{{ pillar_patroni.config.postgresql.slots | yaml(False) | indent(4, true) }}
+{{ pillar_patroni.config.postgresql.slots | toyaml | indent(4) }}
 {%- endif %}
   create_replica_methods:
     - pgbackrest
