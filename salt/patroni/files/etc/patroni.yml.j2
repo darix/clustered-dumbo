@@ -61,7 +61,7 @@ bootstrap:
       host: {{ pillar_patroni.config.standby_primary }}
       port: {{ pillar_patroni.config.port | default(5432) }}
       restore_command: {{ pillar_patroni.config.restore_command | default("/usr/bin/pgbackrest --stanza=" ~ pgbackrest_stanza ~ " archive-get %f \"%p\"") }}
-      # the slot must be maintained on the primary cluster.
+      # this needs to be manually created
       primary_slot_name: {{ pillar_patroni.config.primary_slot_name | default('patroni_standby') }}
       # in theory we can use the same fallthrough as in the postgresql section below
       create_replica_methods: {{ pillar_patroni.config.create_replica_methods | default(['pgbackrest', 'basebackup']) }}
@@ -110,10 +110,6 @@ bootstrap:
         - createdb
 
 postgresql:
-{%- if pillar_patroni.config.postgresql.slots %}
-  slots:
-{{ pillar_patroni.config.postgresql.slots | toyaml | indent(4) }}
-{%- endif %}
   create_replica_methods:
     - pgbackrest
     - basebackup
