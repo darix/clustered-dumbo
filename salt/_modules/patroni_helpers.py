@@ -185,7 +185,7 @@ def settings(pillar_postgresql, pgbackrest_stanza):
 def get_etcd_url(minion_id, hostname, protocol, port ):
     try:
         if ipaddress.ip_address(hostname).version == 6:
-            hostname = f"[{hostname}]" 
+            hostname = f"[{hostname}]"
     except ValueError:
         pass
     return "{minion_id}={protocol}://{hostname}:{port}".format(minion_id=minion_id, protocol=protocol, hostname=hostname, port=port)
@@ -200,6 +200,7 @@ def mine_etcd_cluster_url(selector, key, etcd_protocol="https", etcd_port=2380, 
                 result_list.append(get_etcd_url(minion_id, address, etcd_protocol, etcd_port))
         else:
             result_list.append(get_etcd_url(minion_id, data, etcd_protocol, etcd_port))
+    result_list.sort()
     return join_character.join(result_list)
 
 def password_encryption():
