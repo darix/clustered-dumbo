@@ -21,7 +21,9 @@
 {%- set postgresql_locale                 = 'C.UTF-8' %}
 {%- set postgresql_version                = pillar.get('postgresql', {}).get('version', 17) %}
 {%- set postgresql_instances_dir          = '/srv/patroni/' %}
-{%- set postgresql_data_directory         = postgresql_instances_dir ~ postgresql_version ~ '/data' %}
+{%- set postgresql_instance_dir           = postgresql_instances_dir ~ postgresql_version %}
+{%- set postgresql_data_directory         = postgresql_instance_dir ~ '/data' %}
+{%- set postgresql_log_directory          = postgresql_data_directory ~ '/log' %}
 
 {%- set postgresql_password_encryption    = salt['patroni_helpers.password_encryption']() %}
 {%- set postgresql_auth_method            = postgresql_password_encryption ~ ' clientcert=verify-full' %}
@@ -68,10 +70,13 @@ pgbackrest:
       repo1-s3-bucket:      pgbackrest
 
 postgresql:
+  group_readable_logs: False
   ca_cert:       {{ ca_certs_filename }}
   version: {{ postgresql_version }}
   instancesdir: {{ postgresql_instances_dir }}
+  instancedir: {{ postgresql_instance_dir }}
   data_directory: {{ postgresql_data_directory }}
+  log_directory: {{ postgresql_log_directory }}
   locale: {{ postgresql_locale }}
   # example for "needs client cert and password"
   client:

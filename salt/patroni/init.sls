@@ -36,7 +36,19 @@
 {%- if 'port' in pillar_postgresql.parameters %}
 {%- set postgresql_port = pillar_postgresql.parameters.port %}
 {%- endif %}
+{%- set postgresql_instance_dir   = pillar_postgresql.instancedir %}
 {%- set postgresql_data_directory = pillar_postgresql.data_directory %}
+{%- set postgresql_log_directory  = pillar_postgresql.log_directory  %}
+
+
+{%- if pillar_postgresql.group_readable_logs %}
+  {%- set parent_dir_permissions    = '0710' %}
+  {%- set log_directory_permissions = '0750' %}
+{%- else %}
+  {%- set parent_dir_permissions    = '0700' %}
+  {%- set log_directory_permissions = '0700' %}
+{%- endif %}
+
 
 postgresql_packages:
   pkg.installed:
@@ -69,18 +81,27 @@ postgresql_instances_dir:
     - name: {{ pillar_postgresql.instancesdir }}
     - user: postgres
     - group: postgres
-    - mode: '0700'
+    - mode: {{ parent_dir_permissions }}
     - require:
       - postgresql_packages
+
+postgresql_instance_dir:
+  file.directory:
+    - name: {{ pillar_postgresql.instancedir }}
+    - user: postgres
+    - group: postgres
+    - mode: {{ parent_dir_permissions }}
+    - require:
+      - postgresql_instances_dir
 
 postgresql_data_directory:
   file.directory:
     - name: {{ postgresql_data_directory }}
     - user: postgres
     - group: postgres
-    - mode: '0700'
+    - mode: {{ parent_dir_permissions }}
     - require:
-      - file: postgresql_instances_dir
+      - postgresql_instance_dir
 
 {%- set sysconfig_setting = "POSTGRES_DATADIR" %}
 sysconfig_postgresql_datadir:
@@ -144,6 +165,15 @@ patroni_service:
       - patroni_config
       - pgbackrest_config
       - patroni_setup_helpers
+
+postgresql_log_directory_permissions:
+  file.directory:
+    - name: {{ postgresql_log_directory }}
+    - user: postgres
+    - group: postgres
+    - mode: {{ log_directory_permissions }}
+    - require:
+      - patroni_service
 
 pgbackrest_config:
   file.managed:
