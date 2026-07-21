@@ -100,7 +100,7 @@ postgresql:
       password: supersecure
   parameters:
     password_encryption: {{ postgresql_password_encryption }}
-    archive_mode: on
+    archive_mode: "on"
     log_timezone: 'UTC'
     timezone: 'UTC'
     lc_messages: '{{ postgresql_locale }}'
@@ -120,7 +120,7 @@ postgresql:
     max_wal_size: 1GB
     min_wal_size: 80MB
     log_destination: 'stderr'
-    logging_collector: on
+    logging_collector: "on"
     log_line_prefix: '%m %d %u [%p]'
     default_text_search_config: 'pg_catalog.english'
     #/defaults
