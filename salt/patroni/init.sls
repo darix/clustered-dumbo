@@ -172,6 +172,7 @@ postgresql_log_directory_permissions:
     - user: postgres
     - group: postgres
     - mode: {{ log_directory_permissions }}
+    - onlyif: test -d {{ postgresql_log_directory }}
     - require:
       - patroni_service
 
